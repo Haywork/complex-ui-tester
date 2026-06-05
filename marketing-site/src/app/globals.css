@@ -115,6 +115,23 @@ body {
   background: var(--color-mute-4);
 }
 
+/* Hero gradient text — dark mode: pale-paper → mute-5 contrast works on dark bg.
+   Light mode: both endpoints are near-invisible, so fall back to solid ink. */
+.hero-gradient-text {
+  background: linear-gradient(135deg, var(--color-paper) 0%, var(--color-mute-5) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+:root.light .hero-gradient-text {
+  background: none;
+  -webkit-background-clip: unset;
+  -webkit-text-fill-color: var(--color-ink);
+  background-clip: unset;
+  color: var(--color-ink);
+}
+
 /* Reduced motion */
 @media (prefers-reduced-motion: reduce) {
   *,

@@ -117,14 +117,14 @@ test.describe("/pricing", () => {
 });
 
 test.describe("/docs", () => {
-  test("links to all 11 numbered docs", async ({ page }) => {
+  test("links to all 12 numbered docs", async ({ page }) => {
     const { errors, listener } = attachConsoleSink();
     page.on("console", listener);
 
     const resp = await page.goto("/docs");
     expect(resp?.status()).toBe(200);
 
-    for (let n = 1; n <= 11; n++) {
+    for (let n = 1; n <= 12; n++) {
       const docNumber = String(n).padStart(2, "0");
       await expect(
         page.locator("text=" + docNumber).first()

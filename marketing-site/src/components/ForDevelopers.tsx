@@ -22,7 +22,7 @@ export function ForDevelopers() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section header */}
         <div className="max-w-3xl mb-12">
-          <p className="font-mono text-xs uppercase tracking-widest text-[var(--color-mute-4)] mb-4 flex items-center gap-2">
+          <p className="font-mono text-xs uppercase tracking-widest text-[var(--text-tertiary)] mb-4 flex items-center gap-2">
             <span
               className="inline-block w-4 h-px bg-[var(--color-accent)]"
               aria-hidden="true"
@@ -101,7 +101,7 @@ export function ForDevelopers() {
               {/* Good code */}
               <div className="lg:col-span-4">
                 <div className="flex items-center gap-2 mb-2">
-                  <Badge variant="success">with complex-ui-tester</Badge>
+                  <Badge variant="success">with CUIT</Badge>
                   <span className="text-xs text-[var(--text-tertiary)]">
                     deterministic / generated / permanent
                   </span>

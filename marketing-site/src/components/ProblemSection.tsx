@@ -70,7 +70,7 @@ export function ProblemSection() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section header */}
         <div className="max-w-2xl mb-14">
-          <p className="font-mono text-xs uppercase tracking-widest text-[var(--color-mute-4)] mb-4">
+          <p className="font-mono text-xs uppercase tracking-widest text-[var(--text-tertiary)] mb-4">
             The problem
           </p>
           <h2
@@ -94,7 +94,7 @@ export function ProblemSection() {
           <div className="rounded-[var(--radius-lg)] border border-red-900/40 bg-red-950/10 overflow-hidden">
             <div className="px-6 py-4 border-b border-red-900/30 bg-red-950/20">
               <h3 className="font-mono text-sm text-red-400 font-medium tracking-wide">
-                BEFORE complex-ui-tester
+                BEFORE CUIT
               </h3>
               <p className="text-xs text-[var(--text-tertiary)] mt-0.5">
                 What teams do today — 6 Reopened bugs in 60 days
@@ -129,7 +129,7 @@ export function ProblemSection() {
           <div className="rounded-[var(--radius-lg)] border border-green-900/40 bg-green-950/10 overflow-hidden">
             <div className="px-6 py-4 border-b border-green-900/30 bg-green-950/20">
               <h3 className="font-mono text-sm text-green-400 font-medium tracking-wide">
-                WITH complex-ui-tester
+                WITH CUIT
               </h3>
               <p className="text-xs text-[var(--text-tertiary)] mt-0.5">
                 Branch B: 8 bugs locked in, 0% flake, 3 browsers verified

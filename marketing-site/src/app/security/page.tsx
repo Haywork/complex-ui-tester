@@ -63,7 +63,7 @@ export default function SecurityPage() {
     <SiteShell>
       <section className="pt-12 pb-12 md:pt-20 md:pb-16 border-b border-[var(--border-color)]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <p className="font-mono text-xs uppercase tracking-widest text-[var(--color-mute-4)] mb-4">
+          <p className="font-mono text-xs uppercase tracking-widest text-[var(--text-tertiary)] mb-4">
             Security &amp; compliance
           </p>
           <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold text-[var(--text-primary)] leading-[1.05] tracking-tight mb-6 max-w-3xl">

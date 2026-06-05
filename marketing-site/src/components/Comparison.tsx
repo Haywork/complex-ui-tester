@@ -10,7 +10,7 @@ export function Comparison() {
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="max-w-3xl mb-12">
-          <p className="font-mono text-xs uppercase tracking-widest text-[var(--color-mute-4)] mb-4 flex items-center gap-2">
+          <p className="font-mono text-xs uppercase tracking-widest text-[var(--text-tertiary)] mb-4 flex items-center gap-2">
             <span
               className="inline-block w-4 h-px bg-[var(--color-accent)]"
               aria-hidden="true"
@@ -83,7 +83,7 @@ export function Comparison() {
 
               <div className="px-5 py-4 border-t border-[var(--border-color)] bg-[var(--bg-primary)]">
                 <div className="flex items-baseline gap-3">
-                  <Badge variant="accent">complex-ui-tester</Badge>
+                  <Badge variant="accent">CUIT</Badge>
                   <p className="text-sm text-[var(--text-secondary)] leading-relaxed flex-1">
                     {row.vsCuit}
                   </p>

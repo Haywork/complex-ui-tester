@@ -44,7 +44,7 @@ export function Hero() {
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="max-w-4xl">
           {/* Eyebrow */}
-          <p className="font-mono text-xs uppercase tracking-widest text-[var(--color-mute-4)] mb-6 flex items-center gap-2">
+          <p className="font-mono text-xs uppercase tracking-widest text-[var(--text-tertiary)] mb-6 flex items-center gap-2">
             <span
               className="inline-block w-4 h-px bg-[var(--color-accent)]"
               aria-hidden="true"
@@ -59,16 +59,9 @@ export function Hero() {
           >
             Your AI tool ships UI changes.{" "}
             <br className="hidden sm:block" />
+            {/* Dark mode: gradient from bright paper → mute-5. Light mode: solid text-primary. */}
             <span
-              className="relative inline-block"
-              style={{
-                WebkitTextStroke: "0",
-                background:
-                  "linear-gradient(135deg, var(--color-paper) 0%, var(--color-mute-5) 100%)",
-                WebkitBackgroundClip: "text",
-                WebkitTextFillColor: "transparent",
-                backgroundClip: "text",
-              }}
+              className="relative inline-block hero-gradient-text"
             >
               Make the regression spec land with it.
             </span>
@@ -80,7 +73,7 @@ export function Hero() {
             can drive a Chrome extension — non-deterministically. Yes, Jam and
             LogRocket record sessions — without producing a regression test.{" "}
             <strong className="text-[var(--text-primary)] font-semibold">
-              complex-ui-tester
+              CUIT
             </strong>{" "}
             captures the interaction in a 10 KB Chrome extension, generates a
             Playwright spec grounded in semantic events (not pixel coords),

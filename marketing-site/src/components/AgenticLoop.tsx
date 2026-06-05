@@ -50,7 +50,7 @@ export function AgenticLoop() {
 
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="max-w-3xl mb-12">
-          <p className="font-mono text-xs uppercase tracking-widest text-[var(--color-mute-4)] mb-4 flex items-center gap-2">
+          <p className="font-mono text-xs uppercase tracking-widest text-[var(--text-tertiary)] mb-4 flex items-center gap-2">
             <span
               className="inline-block w-4 h-px bg-[var(--color-accent)]"
               aria-hidden="true"
@@ -70,7 +70,7 @@ export function AgenticLoop() {
             no deterministic feedback signal — no way for the model to
             <em> see </em>that the UI it wrote actually behaves correctly
             when a user drags a segment, scrubs a playhead, reorders a row.
-            complex-ui-tester closes that loop. Observe, propose, verify,
+            CUIT closes that loop. Observe, propose, verify,
             gate. End-to-end, in {PROOF_STATS.agentLoopDurationS}s.
           </p>
         </div>

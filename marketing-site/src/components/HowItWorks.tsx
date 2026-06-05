@@ -12,7 +12,7 @@ const STEPS = [
 
 user → Jam "drag didn't work" → session URL in Slack
                     ↓
-    complex-ui-tester connector picks it up`,
+    CUIT connector picks it up`,
     filename: "no-changes.sh",
     badge: "5 vendors supported",
   },
@@ -70,7 +70,7 @@ export function HowItWorks() {
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="max-w-2xl mb-16">
-          <p className="font-mono text-xs uppercase tracking-widest text-[var(--color-mute-4)] mb-4">
+          <p className="font-mono text-xs uppercase tracking-widest text-[var(--text-tertiary)] mb-4">
             How it works
           </p>
           <h2

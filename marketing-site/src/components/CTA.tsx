@@ -26,7 +26,7 @@ export function CTA() {
       />
 
       <div className="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-        <p className="font-mono text-xs uppercase tracking-widest text-[var(--color-mute-4)] mb-6">
+        <p className="font-mono text-xs uppercase tracking-widest text-[var(--text-tertiary)] mb-6">
           Ready when you are
         </p>
         <h2

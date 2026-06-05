@@ -48,7 +48,7 @@ export function SceneJamCard() {
       <div className="font-mono text-[10px] text-[var(--text-tertiary)] border-t border-[var(--border-color)] pt-3 leading-relaxed">
         <div className="flex items-center gap-1.5">
           <span className="text-green-400">●</span>
-          <span>Webhook delivered → complex-ui-tester</span>
+          <span>Webhook delivered → CUIT</span>
           <span className="ml-auto">204 OK · 142ms</span>
         </div>
       </div>

@@ -44,7 +44,7 @@ export default function PricingPage() {
       {/* Header — problem-led */}
       <section className="pt-12 pb-12 md:pt-20 md:pb-16 border-b border-[var(--border-color)]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <p className="font-mono text-xs uppercase tracking-widest text-[var(--color-mute-4)] mb-4 flex items-center gap-2">
+          <p className="font-mono text-xs uppercase tracking-widest text-[var(--text-tertiary)] mb-4 flex items-center gap-2">
             <span className="inline-block w-4 h-px bg-[var(--color-accent)]" aria-hidden="true" />
             Pricing
           </p>

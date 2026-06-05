@@ -122,6 +122,16 @@ export const DOCS: DocEntry[] = [
     href: `${GITHUB_BLOB}/docs/11-recorder-extension.md`,
     status: "shipping",
   },
+  {
+    number: "12",
+    slug: "12-qa-data-warehouse",
+    title: "QA Data Warehouse",
+    description:
+      "What the SaaS centralizes — the org-wide queryable corpus of sessions, specs, runs, bug-classes, and signals. Six entity classes, REST API, eight-tool MCP server for Claude Code / Cursor / Aider mid-task investigation. The OSS-vs-SaaS buy-vs-build line.",
+    audience: "Engineering leaders evaluating the SaaS, integration engineers",
+    href: `${GITHUB_BLOB}/docs/12-qa-data-warehouse.md`,
+    status: "shipping",
+  },
 ];
 
 export const TOP_LEVEL_DOCS = [

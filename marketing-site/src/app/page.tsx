@@ -5,6 +5,7 @@ import { AgenticLoop } from "@/components/AgenticLoop";
 import { TwoFlows } from "@/components/TwoFlows";
 import { RecorderAlpha } from "@/components/RecorderAlpha";
 import { Comparison } from "@/components/Comparison";
+import { DataWarehouse } from "@/components/DataWarehouse";
 import { ProblemSection } from "@/components/ProblemSection";
 import { HowItWorks } from "@/components/HowItWorks";
 import { DemoWalkthrough } from "@/components/DemoWalkthrough";
@@ -55,6 +56,7 @@ export default async function Home({
       <AgenticLoop />
       <TwoFlows />
       <RecorderAlpha />
+      <DataWarehouse />
       <Comparison />
       <ProblemSection />
       <HowItWorks />

@@ -3,7 +3,7 @@ export function SceneDashboard() {
     <div className="rounded-[var(--radius-lg)] border border-[var(--border-color)] bg-[var(--bg-secondary)] overflow-hidden">
       <div className="px-4 py-2 border-b border-[var(--border-color)] bg-[var(--bg-tertiary)] flex items-center gap-2">
         <span className="font-mono text-[10px] text-[var(--text-tertiary)]">
-          app.complex-ui-tester.com · Sessions
+          app.cuit.dev · Sessions
         </span>
         <span className="ml-auto font-mono text-[10px] text-[var(--text-tertiary)]">
           acme-corp

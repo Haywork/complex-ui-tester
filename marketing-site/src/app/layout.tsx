@@ -15,17 +15,19 @@ const geistMono = Geist_Mono({
   display: "swap",
 });
 
-const SITE_NAME = "complex-ui-tester";
+const SITE_NAME = "CUIT";
 const SITE_DESCRIPTION =
   "Turn recorded Jam / LogRocket / Sentry Replay sessions into deterministic Playwright specs in under 8 minutes. The OSS harness is MIT. The data infrastructure that sharpens it is the product.";
 
 export const metadata: Metadata = {
   title: {
-    default: `${SITE_NAME} — Stop fixing the same UI bug twice`,
-    template: `%s · ${SITE_NAME}`,
+    default: `${SITE_NAME} — complex-ui-tester · Stop fixing the same UI bug twice`,
+    template: `%s · ${SITE_NAME} (complex-ui-tester)`,
   },
   description: SITE_DESCRIPTION,
   keywords: [
+    "CUIT",
+    "complex-ui-tester",
     "Playwright",
     "UI testing",
     "session replay",
@@ -43,7 +45,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: `${SITE_NAME} — Stop fixing the same UI bug twice`,
     description: SITE_DESCRIPTION,
-    siteName: SITE_NAME,
+    siteName: "CUIT (complex-ui-tester)",
     locale: "en_US",
     type: "website",
   },

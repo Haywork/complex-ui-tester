@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Badge } from "@/components/ui/Badge";
+import { BrandMark } from "@/components/BrandMark";
 
 const FOOTER_LINKS = {
   Product: [
@@ -35,12 +36,21 @@ export function Footer() {
           <div className="sm:col-span-2 md:col-span-1">
             <Link
               href="/"
-              className="font-mono text-sm font-medium text-[var(--text-primary)] hover:text-[var(--color-accent)] transition-colors focus-visible:outline-2 focus-visible:outline-[var(--color-accent)] focus-visible:outline-offset-2 rounded-sm"
+              className="inline-flex items-center gap-2.5 group focus-visible:outline-2 focus-visible:outline-[var(--color-accent)] focus-visible:outline-offset-2 rounded-sm"
+              aria-label="CUIT — home"
             >
-              <span className="text-[var(--text-tertiary)]">@cuit/</span>harness
+              <BrandMark size={22} className="shrink-0 transition-opacity group-hover:opacity-80" />
+              <div className="flex flex-col leading-none">
+                <span className="font-mono text-sm font-bold tracking-[0.06em] text-[var(--text-primary)] group-hover:text-[var(--color-accent)] transition-colors">
+                  CUIT
+                </span>
+                <span className="font-mono text-[9px] text-[var(--text-tertiary)] tracking-wider mt-px">
+                  complex-ui-tester
+                </span>
+              </div>
             </Link>
-            <p className="mt-3 text-sm text-[var(--text-secondary)] max-w-[220px] leading-relaxed">
-              Turn session replays into deterministic Playwright specs. MIT-licensed harness, SaaS for the rest.
+            <p className="mt-3 text-xs text-[var(--text-secondary)] max-w-[220px] leading-relaxed">
+              MIT-licensed harness &middot; the deterministic feedback edge for agentic UI engineering.
             </p>
             <div className="mt-4 flex items-center gap-2">
               <a
