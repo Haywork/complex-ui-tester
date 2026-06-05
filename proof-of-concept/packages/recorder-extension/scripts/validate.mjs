@@ -1,0 +1,124 @@
+// scripts/validate.mjs
+//
+// Sanity gate for the unbundled extension. Catches the obvious "I edited
+// @cuit/recorder but forgot to update content.js" drift, plus a few
+// manifest invariants Chrome will otherwise reject silently. Run via
+// `pnpm -F @cuit/recorder-extension validate`.
+
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const here = path.dirname(fileURLToPath(import.meta.url));
+const root = path.resolve(here, '..');
+
+const failures = [];
+function check(cond, msg) {
+  if (!cond) failures.push(msg);
+}
+
+// --- 1. manifest sanity --------------------------------------------------
+const manifest = JSON.parse(fs.readFileSync(path.join(root, 'manifest.json'), 'utf-8'));
+check(manifest.manifest_version === 3, 'manifest_version must be 3');
+check(manifest.version === '0.1.0', 'version must be 0.1.0 in v0.1');
+const cs = manifest.content_scripts?.[0];
+check(cs?.world === 'MAIN', 'content_scripts[0].world must be "MAIN" — required for window.__cuitDebug access');
+check(Array.isArray(cs?.js) && cs.js.includes('content.js'), 'content_scripts must include content.js');
+check(Array.isArray(manifest.permissions) && manifest.permissions.includes('scripting'),
+  'permissions must include "scripting" — popup uses chrome.scripting.executeScript');
+check(manifest.background?.type === 'module', 'background.type must be "module" (MV3 SW)');
+
+// --- 2. required files present ------------------------------------------
+for (const f of ['manifest.json', 'background.js', 'content.js', 'popup.html', 'popup.js', 'README.md']) {
+  check(fs.existsSync(path.join(root, f)), `missing required file: ${f}`);
+}
+for (const size of [16, 32, 48, 128]) {
+  check(fs.existsSync(path.join(root, 'icons', `icon-${size}.png`)),
+    `missing icon: icons/icon-${size}.png`);
+}
+
+// --- 3. content.js exposes the public API contract -----------------------
+const content = fs.readFileSync(path.join(root, 'content.js'), 'utf-8');
+const REQUIRED_API_HOOKS = [
+  ['window.__cuitRecorder = api', 'exposes window.__cuitRecorder'],
+  ['start(', 'defines start()'],
+  ['stop(', 'defines stop()'],
+  ['status(', 'defines status()'],
+];
+for (const [pat, desc] of REQUIRED_API_HOOKS) {
+  check(content.includes(pat), `content.js missing required API surface (${desc}): looking for ${pat}`);
+}
+
+// --- 4. content.js mirrors @cuit/recorder primitives ---------------------
+// The extension ships unbundled — content.js is a JS port of the TS module.
+// Any drift in the captured event categories must be intentional.
+const REQUIRED_EVENT_TYPES = ['nav', 'pointer', 'state-snapshot'];
+for (const t of REQUIRED_EVENT_TYPES) {
+  check(content.includes(`type: '${t}'`) || content.includes(`'type': '${t}'`),
+    `content.js must emit events of type "${t}"`);
+}
+const REQUIRED_POINTER_PHASES = ['pointerdown', 'pointermove', 'pointerup'];
+for (const p of REQUIRED_POINTER_PHASES) {
+  check(content.includes(p), `content.js must listen for "${p}"`);
+}
+const REQUIRED_SEMANTIC_ATTRS = ['data-segment-id', 'data-testid', 'data-cuit-id'];
+for (const a of REQUIRED_SEMANTIC_ATTRS) {
+  check(content.includes(a), `content.js must honor semantic attribute "${a}"`);
+}
+
+// Sanity: the recorder module ships the same defaults — both should agree.
+try {
+  const recorderSrc = fs.readFileSync(
+    path.resolve(root, '../recorder/src/index.ts'),
+    'utf-8',
+  );
+  for (const a of REQUIRED_SEMANTIC_ATTRS) {
+    check(recorderSrc.includes(a),
+      `@cuit/recorder source must also list semantic attribute "${a}" — drift`);
+  }
+} catch (err) {
+  failures.push(`could not read @cuit/recorder source for cross-check: ${err.message}`);
+}
+
+// --- 5. popup driver wires the API correctly ----------------------------
+const popup = fs.readFileSync(path.join(root, 'popup.js'), 'utf-8');
+const REQUIRED_POPUP_CALLS = [
+  "chrome.scripting.executeScript",
+  "world: 'MAIN'",
+  '__cuitRecorder',
+  'start',
+  'stop',
+  'status',
+];
+for (const c of REQUIRED_POPUP_CALLS) {
+  check(popup.includes(c), `popup.js missing required wire-up: ${c}`);
+}
+
+// --- 6. no obvious data exfiltration -------------------------------------
+// We promise no telemetry. Block any fetch/XHR/sendBeacon to non-localhost.
+const REMOTE_CALL_PATTERNS = [
+  /fetch\s*\(\s*['"]https?:\/\/(?!127\.0\.0\.1|localhost)/i,
+  /XMLHttpRequest/,
+  /navigator\.sendBeacon/,
+];
+for (const f of ['content.js', 'background.js', 'popup.js']) {
+  const text = fs.readFileSync(path.join(root, f), 'utf-8');
+  for (const re of REMOTE_CALL_PATTERNS) {
+    check(!re.test(text), `${f} contains a remote-network pattern (${re}) — recorder must stay local`);
+  }
+}
+
+// --- report --------------------------------------------------------------
+if (failures.length === 0) {
+  console.log('extension validation OK');
+  console.log('  manifest        ', manifest.version);
+  console.log('  content.js      ', content.split('\n').length, 'lines');
+  console.log('  semantic attrs  ', REQUIRED_SEMANTIC_ATTRS.join(', '));
+  console.log('  event types     ', REQUIRED_EVENT_TYPES.join(', '));
+  console.log('  remote calls    none');
+  process.exit(0);
+}
+
+console.error('extension validation FAILED — ' + failures.length + ' issue(s):');
+for (const f of failures) console.error('  - ' + f);
+process.exit(1);

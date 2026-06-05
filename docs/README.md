@@ -20,6 +20,7 @@ All docs are draft v1, last-reviewed 2026-05-27. Owner: ryan@speechlab.ai.
 | 08 | [Customer Experience & Product Surface](./08-customer-experience.md) | PM, design, customer success, design-partner contacts | Personas, end-to-end journey, dashboard (every screen wireframed), the `cuit` CLI, GitHub App + PR template, Slack/email/webhook notifications, onboarding flows (self-serve + design-partner), RBAC, cost transparency UX, success metrics, support surfaces, accessibility/i18n posture. |
 | 09 | [Go-to-Market](./09-go-to-market.md) | Founders, GTM hires, design-partner contacts | Positioning, ICP, pricing tiers (OSS / Team / Business / Enterprise), packaging (OSS vs SaaS), design-partner motion, sales playbook, marketing channels, funnel + metrics, competitive landscape, partnerships, year-1 milestones with dates, GTM-tied hiring plan. |
 | 10 | [Adapter / Connector Spec](./10-adapter-spec.md) | Adapter implementers, vendor partners, integration leads | `SessionEvent[]` schema (the canonical contract), `SessionAdapter` interface, capability matrix, cross-cutting concerns (auth, rate limits, idempotency), per-vendor specs for Jam / LogRocket / Sentry Replay / FullStory / Datadog RUM (endpoints, payloads, normalization, quirks, fixtures), test harness + conformance suite, customer-supplied adapters. |
+| 11 | [First-Party Recorder & Chrome Extension](./11-recorder-extension.md) | Engineers integrating the recorder, security reviewers, agentic-coding integrators | Why first-party beats third-party for the agent loop, MV3 architecture, what gets captured (pointer + semantic selectors + `window.__cuitDebug` snapshots), `RecordedSession` output format, the programmatic `@cuit/recorder` API, the three integration patterns (paste / CLI / local-agent endpoint), privacy posture, roadmap to MCP server. |
 
 ---
 
@@ -37,6 +38,7 @@ graph TB
     CX[08 Customer Experience<br/>what they see]
     GTM[09 Go-to-Market<br/>how we sell it]
     ADAPT[10 Adapter Spec<br/>connector contracts]
+    REC[11 Recorder & Ext<br/>first-party capture]
 
     P --> L
     P --> S
@@ -44,6 +46,7 @@ graph TB
     P --> CX
     L --> AI
     L --> ADAPT
+    L --> REC
     S --> AI
     S --> SEC
     S --> OPS
@@ -56,6 +59,8 @@ graph TB
     CX --> GTM
     SEC --> OPS
     ADAPT --> S
+    REC --> AI
+    REC --> SEC
 ```
 
 - **01** sets the product context every other doc assumes.

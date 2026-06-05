@@ -99,7 +99,7 @@ test.describe("/pricing", () => {
     expect(resp?.status()).toBe(200);
 
     await expect(
-      page.getByRole("heading", { name: /Four tiers/i, level: 1 })
+      page.getByRole("heading", { name: /paying for the wrong problem/i, level: 1 })
     ).toBeVisible();
 
     for (const name of ["OSS", "Team", "Business", "Enterprise"]) {
@@ -108,19 +108,23 @@ test.describe("/pricing", () => {
       ).toBeVisible();
     }
 
+    // The new problem-led structure must be visible per card.
+    await expect(page.locator("text=/You stop having to/i").first()).toBeVisible();
+    await expect(page.locator("text=/You can now/i").first()).toBeVisible();
+
     expect(filterConsoleNoise(errors)).toEqual([]);
   });
 });
 
 test.describe("/docs", () => {
-  test("links to all 10 numbered docs", async ({ page }) => {
+  test("links to all 11 numbered docs", async ({ page }) => {
     const { errors, listener } = attachConsoleSink();
     page.on("console", listener);
 
     const resp = await page.goto("/docs");
     expect(resp?.status()).toBe(200);
 
-    for (let n = 1; n <= 10; n++) {
+    for (let n = 1; n <= 11; n++) {
       const docNumber = String(n).padStart(2, "0");
       await expect(
         page.locator("text=" + docNumber).first()

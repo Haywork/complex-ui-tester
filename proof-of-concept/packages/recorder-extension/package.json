@@ -1,0 +1,22 @@
+{
+  "name": "@cuit/recorder-extension",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Chrome MV3 extension wrapper around @cuit/recorder.",
+  "type": "module",
+  "scripts": {
+    "validate": "node scripts/validate.mjs",
+    "test": "node scripts/validate.mjs",
+    "build": "echo 'no build step — extension ships unbundled' && exit 0",
+    "lint": "echo 'no lint step' && exit 0",
+    "typecheck": "echo 'no typecheck step (extension is plain JS)' && exit 0"
+  },
+  "files": [
+    "manifest.json",
+    "background.js",
+    "content.js",
+    "popup.html",
+    "popup.js",
+    "icons/"
+  ]
+}

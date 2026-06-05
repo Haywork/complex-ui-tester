@@ -40,8 +40,9 @@ The harness is conceptually 12 layers. The first 6 are working code in [PR #1995
 | 8 | Confidence scoring | Planned | SaaS — see doc 04 |
 | 9 | Eval harness | Planned | SaaS — see doc 04 |
 | 10 | Cost-aware model routing | Planned | SaaS — see doc 04 |
-| 11 | Adapter surface | Planned | `@cuit/adapters-*`, see doc 08 |
+| 11 | Adapter surface | Planned | `@cuit/adapters-*`, see doc 10 |
 | 12 | AI step extraction (session → spec) | Planned | SaaS — see doc 04 |
+| 0  | First-party recorder & Chrome extension | **Shipping** | `@cuit/recorder`, `@cuit/recorder-extension`, see doc 11 |
 
 Layers 1–6 are validated against 8 historical SpeechLab waveform bugs. Layer 12 is the differentiator — its full architecture is in [`docs/04-ai-spec-generation.md`](./docs/04-ai-spec-generation.md).
 
@@ -116,6 +117,7 @@ The library is useful even with zero adoption of the SaaS. The SaaS exists to au
 | Threat model, control mapping, SOC 2 posture | [`docs/05-security-compliance.md`](./docs/05-security-compliance.md) |
 | SLOs, on-call, deploys, capacity, runbooks | [`docs/06-operations-sre.md`](./docs/06-operations-sre.md) |
 | Per-tenant cost accounting, token budgets | [`docs/03-saas-platform.md §6`](./docs/03-saas-platform.md) + [`docs/04 §9-10`](./docs/04-ai-spec-generation.md) |
+| First-party recorder + Chrome extension (the closed-loop input edge) | [`docs/11-recorder-extension.md`](./docs/11-recorder-extension.md) |
 | Data infrastructure & feedback loops (the moat) | [`docs/07-data-platform-and-feedback-loops.md`](./docs/07-data-platform-and-feedback-loops.md) |
 | Customer-facing product surface, CLI, dashboard, notifications | [`docs/08-customer-experience.md`](./docs/08-customer-experience.md) |
 | Pricing, packaging, GTM | [`docs/09-go-to-market.md`](./docs/09-go-to-market.md) |

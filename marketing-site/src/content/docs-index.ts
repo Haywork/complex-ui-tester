@@ -112,6 +112,16 @@ export const DOCS: DocEntry[] = [
     href: `${GITHUB_BLOB}/docs/10-adapter-spec.md`,
     status: "shipping",
   },
+  {
+    number: "11",
+    slug: "11-recorder-extension",
+    title: "First-Party Recorder & Chrome Extension",
+    description:
+      "The closed-loop input edge. Why first-party beats third-party for the agent loop, MV3 architecture, captured event surface, programmatic API, three integration patterns including local-agent endpoint and MCP server roadmap.",
+    audience: "Engineers integrating the recorder, agentic-coding integrators",
+    href: `${GITHUB_BLOB}/docs/11-recorder-extension.md`,
+    status: "shipping",
+  },
 ];
 
 export const TOP_LEVEL_DOCS = [

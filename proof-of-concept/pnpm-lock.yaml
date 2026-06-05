@@ -112,6 +112,8 @@ importers:
         specifier: ^2.0.5
         version: 2.1.9(@types/node@20.19.41)(jsdom@25.0.1)
 
+  packages/recorder-extension: {}
+
   packages/runner:
     dependencies:
       '@cuit/adapter-jam':
