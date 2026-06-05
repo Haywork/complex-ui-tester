@@ -92,16 +92,8 @@ export const DOCS: DocEntry[] = [
     href: `${GITHUB_BLOB}/docs/08-customer-experience.md`,
     status: "shipping",
   },
-  {
-    number: "09",
-    slug: "09-go-to-market",
-    title: "Go-to-Market",
-    description:
-      "Positioning, ICP, pricing tiers, design-partner motion, marketing channels, funnel, competitive landscape, hiring.",
-    audience: "Founders, GTM hires",
-    href: `${GITHUB_BLOB}/docs/09-go-to-market.md`,
-    status: "shipping",
-  },
+  // doc 09 (Go-to-Market) lives in the private cuit-internal repo —
+  // pricing strategy, ACV targets, hiring plan are commercially sensitive.
   {
     number: "10",
     slug: "10-adapter-spec",

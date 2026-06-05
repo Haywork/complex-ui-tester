@@ -1,14 +1,20 @@
-# complex-ui-tester
+# CUIT
 
-> Real user session → green CI gate, in under an hour.
->
-> A hybrid OSS library + SaaS for shipping complex UIs without the 6-Reopened-bugs treadmill.
+> **The deterministic feedback edge for agentic UI engineering.**
+> Recorder + harness + spec-gen + data warehouse.
+> Real user session → green CI gate, in 0.18 seconds.
 
-**Status:** Draft architecture — pre-implementation. Design-partner outreach in progress.
-**Working name:** `complex-ui-tester` (final name pending).
-**License:** MIT (library) — see [LICENSE](./LICENSE).
+`CUIT` is the human-facing brand. `complex-ui-tester` is the canonical
+npm/repo/domain name — kept for URL stability and the long-form
+expansion when more context helps.
+
+**Status:** Alpha shipping — Chrome extension downloadable from the
+live site, working proof-of-concept loop in this repo, design-partner
+outreach in progress.
+**License:** MIT (the OSS substrate) — see [LICENSE](./LICENSE).
 **Owner:** ryan@speechlab.ai
-**Live site:** [complex-ui-tester.vercel.app](https://complex-ui-tester.vercel.app) — landing page + interactive 8-scene demo walkthrough.
+**Live site:** [complex-ui-tester.vercel.app](https://complex-ui-tester.vercel.app)
+— landing page + interactive demo + alpha Chrome-extension download.
 
 ---
 
@@ -130,9 +136,8 @@ This repo currently holds **architecture and product documentation only**. Imple
 | ML / AI infrastructure reviewer | [`docs/04-ai-spec-generation.md`](./docs/04-ai-spec-generation.md), then [`docs/07-data-platform-and-feedback-loops.md`](./docs/07-data-platform-and-feedback-loops.md) |
 | Security / compliance reviewer | [`docs/05-security-compliance.md`](./docs/05-security-compliance.md) |
 | Product / design / customer success | [`docs/08-customer-experience.md`](./docs/08-customer-experience.md) |
-| Founder / GTM / sales | [`docs/09-go-to-market.md`](./docs/09-go-to-market.md) |
 | Adapter implementer / vendor partner | [`docs/10-adapter-spec.md`](./docs/10-adapter-spec.md) |
-| An investor or strategist | [`docs/01-product-spec.md`](./docs/01-product-spec.md) §0, §10–12, then [`docs/07`](./docs/07-data-platform-and-feedback-loops.md) §10 (the moat) and [`docs/09`](./docs/09-go-to-market.md) §10 (milestones) |
+| An investor or strategist | [`docs/01-product-spec.md`](./docs/01-product-spec.md) §0, §10–12, then [`docs/07`](./docs/07-data-platform-and-feedback-loops.md) §10 (the moat). (Commercial detail — pricing, ACV, hiring plan — lives in the private `cuit-internal` repo.) |
 
 Or just read the index: [`docs/README.md`](./docs/README.md).
 

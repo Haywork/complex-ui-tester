@@ -117,14 +117,16 @@ test.describe("/pricing", () => {
 });
 
 test.describe("/docs", () => {
-  test("links to all 12 numbered docs", async ({ page }) => {
+  test("links to all 11 public numbered docs (09 is private)", async ({ page }) => {
     const { errors, listener } = attachConsoleSink();
     page.on("console", listener);
 
     const resp = await page.goto("/docs");
     expect(resp?.status()).toBe(200);
 
-    for (let n = 1; n <= 12; n++) {
+    // 09 (Go-to-Market) lives in the private cuit-internal repo, so the
+    // public /docs index lists 01-08 plus 10-12.
+    for (const n of [1, 2, 3, 4, 5, 6, 7, 8, 10, 11, 12]) {
       const docNumber = String(n).padStart(2, "0");
       await expect(
         page.locator("text=" + docNumber).first()

@@ -215,16 +215,16 @@ export default function PricingPage() {
                 a: "That's the whole point of the Team tier. The recorder produces JSON in the exact shape @cuit/spec-gen consumes — you drop the JSON into Claude Code, Codex, or Cursor along with a one-line prompt and the agent has a deterministic feedback loop. See the AGENT LOOP CLOSED output on /proof for the verbatim 0.18s pipeline.",
               },
               {
-                q: "What counts as a spec for billing?",
-                a: "One generated .spec.ts file from one captured session, accepted at confidence ≥ 0.75 or manually approved. Re-runs of an existing spec are unmetered. Failed generations (low confidence, AST validation rejected) do not count.",
+                q: "Specs are unlimited — really? What's the catch?",
+                a: "No catch. Generate as many regression specs as your team can record. Fair-use only — meaning we reserve the right to ask questions if a single tenant pushes 10× the median load, but in practice no engineering team in our pipeline has come close. You pay for seats and for access to the data warehouse, not per spec.",
+              },
+              {
+                q: "What is the UI Intelligence Chat?",
+                a: "A natural-language interface over your tenant's QA corpus. Ask: \"Show me every session where waveform drag failed this month\" — get the answer with links to the sessions, the generated specs, the run history. Backed by the same data warehouse described in docs/12. Available on Team and above.",
               },
               {
                 q: "I just want the harness for my own tests — do I need to pay?",
-                a: "No. The OSS library is MIT-licensed and complete. dispatchDrag, setClock, getStateSnapshot, the mutation observer — all yours. You only pay when you want the SaaS to generate specs for you from recorded sessions.",
-              },
-              {
-                q: "What if I exceed my monthly spec allotment?",
-                a: "Overage rates are listed per tier ($5 / $4 / $3.50 per extra spec). You can set hard caps in the dashboard to disable overage entirely. Notifications fire at 50%, 75%, 90%, 100% of allotment.",
+                a: "No. The OSS library is MIT-licensed and complete. dispatchDrag, setClock, getStateSnapshot, the mutation observer — all yours. You only pay when you want the SaaS data warehouse, the UI Intelligence Chat, and unlimited managed spec generation.",
               },
               {
                 q: "We don't trust our session data in someone else's cloud — can we still use this?",
