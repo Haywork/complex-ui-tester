@@ -49,7 +49,7 @@ export function Hero() {
               className="inline-block w-4 h-px bg-[var(--color-accent)]"
               aria-hidden="true"
             />
-            The closed-loop feedback layer for agentic UI engineering
+            The deterministic feedback edge for agentic UI engineering
           </p>
 
           {/* Headline */}
@@ -57,7 +57,7 @@ export function Hero() {
             id="hero-headline"
             className="text-5xl sm:text-6xl md:text-7xl font-bold leading-[0.95] tracking-tight text-[var(--text-primary)] mb-6"
           >
-            Claude Code can write a UI.{" "}
+            Your AI tool ships UI changes.{" "}
             <br className="hidden sm:block" />
             <span
               className="relative inline-block"
@@ -70,19 +70,24 @@ export function Hero() {
                 backgroundClip: "text",
               }}
             >
-              Now it can verify one.
+              Make the regression spec land with it.
             </span>
           </h1>
 
           {/* Subheadline */}
           <p className="text-lg md:text-xl text-[var(--text-secondary)] max-w-2xl leading-relaxed mb-10">
+            Yes, Playwright works — when a human writes it. Yes, Claude Code
+            can drive a Chrome extension — non-deterministically. Yes, Jam and
+            LogRocket record sessions — without producing a regression test.{" "}
             <strong className="text-[var(--text-primary)] font-semibold">
               complex-ui-tester
             </strong>{" "}
-            is the recorder + harness + spec-gen that gives agentic coding
-            models the one thing they&apos;re missing: a deterministic feedback
-            signal for UI changes.{" "}
-            <span className="text-[var(--text-primary)]">Observe. Propose. Verify. Gate.</span>{" "}
+            captures the interaction in a 10 KB Chrome extension, generates a
+            Playwright spec grounded in semantic events (not pixel coords),
+            and locks it in as a CI gate.{" "}
+            <span className="text-[var(--text-primary)]">
+              Two flows — lock in a baseline, or reproduce a bug.
+            </span>{" "}
             Closed loop in 0.18s.
           </p>
 

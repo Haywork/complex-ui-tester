@@ -38,8 +38,8 @@ test.describe("home page (/)", () => {
     expect(resp?.status(), "/ should respond 200").toBe(200);
 
     const headline = page.getByRole("heading", { level: 1 });
-    await expect(headline).toContainText("Claude Code can write a UI");
-    await expect(headline).toContainText("Now it can verify one");
+    await expect(headline).toContainText("Your AI tool ships UI changes");
+    await expect(headline).toContainText("Make the regression spec land with it");
 
     for (let i = 1; i <= 8; i++) {
       await expect(page.getByTestId(`scene-dot-${i}`)).toBeVisible();
@@ -171,6 +171,36 @@ test.describe("home page (/) agentic loop", () => {
     ).toBeVisible();
     await expect(page.locator("text=/AGENT LOOP CLOSED/").first()).toBeVisible();
     await expect(page.locator("text=/pnpm proof:agent-loop/").first()).toBeVisible();
+  });
+});
+
+test.describe("home page (/) two flows + comparison", () => {
+  test("renders the TwoFlows section with both Flow A and Flow B", async ({ page }) => {
+    await page.goto("/");
+    await expect(
+      page.getByRole("heading", { name: /lock in what works/i, level: 2 })
+    ).toBeVisible();
+    await expect(page.locator("text=/Flow A.*reactive/i").first()).toBeVisible();
+    await expect(page.locator("text=/Flow B.*proactive/i").first()).toBeVisible();
+    // The actual decision logic from the skill must be visible.
+    await expect(page.locator("text=/Flow A.*bug reproduction/i").first()).toBeVisible();
+    await expect(page.locator("text=/Flow B.*baseline lock-in/i").first()).toBeVisible();
+  });
+
+  test("renders the Comparison section naming the alternatives", async ({ page }) => {
+    await page.goto("/");
+    await expect(
+      page.getByRole("heading", { name: /all of these work/i, level: 2 })
+    ).toBeVisible();
+    for (const alt of [
+      "Playwright tests written by hand",
+      "Claude Code / Codex writes the Playwright test for you",
+      "Agent driving a real browser",
+      "Session replay vendors",
+      "Screenshot diff testing",
+    ]) {
+      await expect(page.locator(`text=${alt}`).first()).toBeVisible();
+    }
   });
 });
 

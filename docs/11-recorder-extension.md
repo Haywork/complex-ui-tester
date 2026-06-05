@@ -529,6 +529,96 @@ type RecorderOptions = {
 
 ---
 
+## 6.5 Two flows the recorder supports
+
+The recorder is symmetric — it does not care whether the code is broken
+when the developer presses Start. There are two distinct flows the
+downstream skill auto-detects on the first run of the generated spec.
+
+### Flow A — bug reproduction (reactive)
+
+```
+buggy code  ──▶  record  ──▶  spec-gen  ──▶  run  ──▶  RED
+                                                       │
+                                                       ▼
+                                              diagnose · fix · re-run
+                                                       │
+                                                       ▼
+                                                     GREEN
+                                                       │
+                                                       ▼
+                                              commit fix + spec
+                                                       │
+                                                       ▼
+                                              regression gate
+```
+
+When a user files a bug, the developer reproduces it in their browser
+while the recorder is running. The generated spec fails RED on the first
+run (because the bug is in current code). The agent reads the failure,
+proposes a code fix, applies it, and re-runs the same spec — which now
+passes GREEN. Spec + fix land together in one PR.
+
+This is the flow [`proof-of-concept/packages/runner/src/cli-agent-loop.ts`](../proof-of-concept/packages/runner/src/cli-agent-loop.ts)
+implements end-to-end in 0.18s.
+
+### Flow B — baseline lock-in (proactive)
+
+```
+working code  ──▶  record  ──▶  spec-gen  ──▶  run  ──▶  GREEN
+                                                          │
+                                                          ▼
+                                                  commit spec only
+                                                          │
+                                                          ▼
+                                              future regression gate
+```
+
+Before any bug exists, a developer records a critical interaction on
+known-good code. The generated spec passes GREEN on the first run
+(because the code works). The agent commits the spec to
+`tests/regressions/` and opens a PR adding the test. Any future PR that
+breaks the interaction now fails CI before merge.
+
+Flow B is how a team locks in the behavior of a brand-new feature, or
+proactively adds regression coverage to a critical interaction that
+previously had none.
+
+### Why one skill handles both
+
+The skill — [`.claude/skills/cuit-loop/SKILL.md`](../.claude/skills/cuit-loop/SKILL.md)
+— branches on the result of the first spec run:
+
+```
+PASS  →  Flow B  →  commit spec as baseline, open PR
+FAIL  →  Flow A  →  diagnose · fix · re-run · commit fix+spec
+```
+
+The developer does not declare which flow they are in. The result of
+running the generated spec determines it. This means a developer who
+**thought** they were in Flow B but accidentally captured a buggy state
+is routed into Flow A automatically — the skill diagnoses, asks the user
+to confirm whether to walk the fix loop or re-record. The reverse is
+also true: a developer who tries to reproduce a bug that has already
+been silently fixed will get GREEN on first run, and the skill will tell
+them so before any fix work begins.
+
+### Flow A vs Flow B artifact comparison
+
+| Stage | Flow A | Flow B |
+|---|---|---|
+| Code state at capture | Buggy | Working |
+| First spec run | RED (expected) | GREEN (expected) |
+| Diagnose-fix-rerun cycle | Yes | No |
+| Files in PR | spec + source fix | spec only |
+| PR title | `fix: <description>` | `regression: lock in <interaction>` |
+| Iteration cap | 3 fix attempts before escalation | n/a |
+
+Both flows produce a GREEN spec.ts living in `tests/regressions/` that
+gates future PRs.
+
+---
+
 ## 7. Integration with the agent loop
 
 The recorder's job is to feed an agentic coding model a deterministic

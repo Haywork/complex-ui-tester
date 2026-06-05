@@ -2,7 +2,9 @@ import { Suspense } from "react";
 import { SiteShell } from "@/components/SiteShell";
 import { Hero } from "@/components/Hero";
 import { AgenticLoop } from "@/components/AgenticLoop";
+import { TwoFlows } from "@/components/TwoFlows";
 import { RecorderAlpha } from "@/components/RecorderAlpha";
+import { Comparison } from "@/components/Comparison";
 import { ProblemSection } from "@/components/ProblemSection";
 import { HowItWorks } from "@/components/HowItWorks";
 import { DemoWalkthrough } from "@/components/DemoWalkthrough";
@@ -51,7 +53,9 @@ export default async function Home({
     <SiteShell>
       <Hero />
       <AgenticLoop />
+      <TwoFlows />
       <RecorderAlpha />
+      <Comparison />
       <ProblemSection />
       <HowItWorks />
       <Suspense fallback={<DemoFallback />}>
