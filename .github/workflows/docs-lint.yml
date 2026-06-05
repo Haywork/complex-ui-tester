@@ -1,0 +1,73 @@
+name: docs lint
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "**/*.md"
+      - ".github/workflows/docs-lint.yml"
+  pull_request:
+    paths:
+      - "**/*.md"
+      - ".github/workflows/docs-lint.yml"
+
+concurrency:
+  group: docs-lint-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  links:
+    name: cross-reference check
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Verify all doc cross-references resolve
+        run: |
+          set -e
+          shopt -s globstar nullglob
+          fail=0
+          # For every relative .md link in our docs, verify the target file exists.
+          for f in README.md ARCHITECTURE.md SYSTEM_DESIGN.md CONTRIBUTING.md CODE_OF_CONDUCT.md SECURITY.md docs/**/*.md; do
+            [ -f "$f" ] || continue
+            base_dir=$(dirname "$f")
+            # extract ](./...md) and ](../...md) style links
+            while IFS= read -r link; do
+              # strip surrounding ](...) and any anchor (#...)
+              target=$(echo "$link" | sed -E 's/.*\]\(([^)]+)\).*/\1/; s/#.*//')
+              # skip http(s), mailto, absolute paths
+              case "$target" in
+                http*|mailto:*|/*) continue ;;
+              esac
+              resolved="$base_dir/$target"
+              # normalize ../ and ./
+              normalized=$(python3 -c "import os,sys;print(os.path.normpath(sys.argv[1]))" "$resolved")
+              if [ ! -e "$normalized" ]; then
+                echo "::error file=$f::broken relative link to '$target' (resolved: $normalized)"
+                fail=1
+              fi
+            done < <(grep -oE '\]\(\.{1,2}/[^)]*\.md(#[^)]*)?\)' "$f" || true)
+          done
+          exit $fail
+
+  forbidden:
+    name: forbidden patterns
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: No "(planned)" markers in doc index
+        run: |
+          if grep -r "(planned)" docs/ README.md ARCHITECTURE.md SYSTEM_DESIGN.md 2>/dev/null; then
+            echo "::error::Found '(planned)' marker — all planned docs must either be written or removed from index."
+            exit 1
+          fi
+
+      - name: No TODO comments in published docs
+        run: |
+          if grep -nE "^\s*(<!--\s*)?TODO[: ]" docs/*.md ARCHITECTURE.md SYSTEM_DESIGN.md 2>/dev/null; then
+            echo "::error::Found TODO comments — resolve or remove before merging."
+            exit 1
+          fi

@@ -1,0 +1,17 @@
+{
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "jsx": "react-jsx"
+  },
+  "include": ["packages/*/src/**/*"],
+  "references": [
+    { "path": "./packages/types" },
+    { "path": "./packages/harness" },
+    { "path": "./packages/adapter-jam" },
+    { "path": "./packages/spec-gen" },
+    { "path": "./packages/demo-app" },
+    { "path": "./packages/runner" },
+    { "path": "./packages/recorder" }
+  ]
+}

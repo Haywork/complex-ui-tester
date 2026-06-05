@@ -1,0 +1,63 @@
+name: marketing-site CI
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "marketing-site/**"
+      - ".github/workflows/marketing-site-ci.yml"
+  pull_request:
+    paths:
+      - "marketing-site/**"
+      - ".github/workflows/marketing-site-ci.yml"
+
+concurrency:
+  group: marketing-site-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  ci:
+    name: typecheck + lint + build + test
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: marketing-site
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20.20.1"
+          cache: "pnpm"
+          cache-dependency-path: marketing-site/pnpm-lock.yaml
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Typecheck
+        run: pnpm typecheck
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Build
+        run: pnpm build
+
+      - name: Install Playwright browsers
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Smoke tests
+        run: pnpm test
+
+      - name: Upload Playwright report on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: marketing-site/playwright-report/
+          retention-days: 7

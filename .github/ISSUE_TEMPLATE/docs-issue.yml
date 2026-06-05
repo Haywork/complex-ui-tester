@@ -1,0 +1,56 @@
+name: Docs issue
+description: Report a bug, gap, or inconsistency in the design docs.
+title: "docs/NN: <short summary>"
+labels: ["docs"]
+body:
+  - type: dropdown
+    id: doc
+    attributes:
+      label: Which doc?
+      options:
+        - "01-product-spec.md"
+        - "02-library-architecture.md"
+        - "03-saas-platform.md"
+        - "04-ai-spec-generation.md"
+        - "05-security-compliance.md"
+        - "06-operations-sre.md"
+        - "07-data-platform-and-feedback-loops.md"
+        - "08-customer-experience.md"
+        - "09-go-to-market.md"
+        - "10-adapter-spec.md"
+        - "ARCHITECTURE.md"
+        - "SYSTEM_DESIGN.md"
+        - "README.md"
+        - "CONTRIBUTING.md"
+        - "Cross-doc inconsistency"
+    validations:
+      required: true
+  - type: textarea
+    id: current
+    attributes:
+      label: Current claim (quote the doc)
+      description: Paste the exact passage you take issue with.
+      render: markdown
+    validations:
+      required: true
+  - type: textarea
+    id: issue
+    attributes:
+      label: What is wrong / missing
+      description: Bug, gap, or inconsistency. Be specific.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed change
+      description: Either a concrete rewrite or a direction. Include evidence if you have it.
+    validations:
+      required: false
+  - type: textarea
+    id: blast
+    attributes:
+      label: What else would need to change?
+      description: The docs cross-reference each other heavily. If accepted, what other docs need updating?
+    validations:
+      required: false

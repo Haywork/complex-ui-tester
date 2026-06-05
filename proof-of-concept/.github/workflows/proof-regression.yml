@@ -1,0 +1,14 @@
+name: issue-2014 — segment 0 drag must not collide-noop
+on:
+  push:
+  pull_request:
+jobs:
+  cuit-proof-loop:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm vitest run issue-2014-segment-0-drag-must-not-collide-noop.spec.ts

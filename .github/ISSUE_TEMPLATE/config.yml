@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Security vulnerability
+    url: https://github.com/speechlabinc/complex-ui-tester/security/policy
+    about: Report security vulnerabilities privately per SECURITY.md — do not file a public issue.
+  - name: Commercial / design-partner inquiry
+    url: mailto:ryan@speechlab.ai
+    about: For pricing, design partner program, or enterprise procurement, email directly.

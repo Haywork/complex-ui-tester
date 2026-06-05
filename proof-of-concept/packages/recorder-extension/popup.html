@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=320, initial-scale=1" />
+    <title>cuit recorder</title>
+    <style>
+      :root {
+        --bg: #0a0a0b;
+        --paper: #fafaf7;
+        --mute: #71717a;
+        --border: #2a2a2d;
+        --accent: #ff5d2a;
+        --success: #22c55e;
+        --warning: #f59e0b;
+        --error: #ef4444;
+      }
+      * { box-sizing: border-box; }
+      html, body {
+        margin: 0;
+        font-family:
+          ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+        background: var(--bg);
+        color: var(--paper);
+        width: 320px;
+        font-size: 13px;
+      }
+      header {
+        padding: 12px 14px 10px;
+        border-bottom: 1px solid var(--border);
+      }
+      h1 {
+        margin: 0;
+        font-size: 13px;
+        font-family: ui-monospace, 'JetBrains Mono', monospace;
+        font-weight: 500;
+      }
+      h1 span.dim { color: var(--mute); }
+      header p {
+        margin: 4px 0 0;
+        font-size: 11px;
+        color: var(--mute);
+        line-height: 1.4;
+      }
+      main { padding: 12px 14px; }
+      .row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 10px;
+      }
+      .dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--mute);
+      }
+      .dot.live { background: var(--accent); animation: pulse 1s ease-in-out infinite; }
+      .dot.ok { background: var(--success); }
+      .dot.warn { background: var(--warning); }
+      @keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.4; }
+      }
+      .status {
+        font-family: ui-monospace, monospace;
+        font-size: 11px;
+        color: var(--mute);
+      }
+      button {
+        flex: 1;
+        padding: 9px 12px;
+        border-radius: 6px;
+        border: 1px solid var(--border);
+        background: #1c1c1e;
+        color: var(--paper);
+        font: inherit;
+        cursor: pointer;
+        font-size: 13px;
+      }
+      button.primary {
+        background: var(--accent);
+        border-color: var(--accent);
+        color: #fff;
+      }
+      button:disabled { opacity: 0.4; cursor: not-allowed; }
+      .button-row { display: flex; gap: 8px; margin-bottom: 8px; }
+      .stats {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 6px;
+        margin-top: 10px;
+      }
+      .stat {
+        padding: 6px 8px;
+        background: #1c1c1e;
+        border: 1px solid var(--border);
+        border-radius: 6px;
+      }
+      .stat-label {
+        font-size: 9px;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        color: var(--mute);
+      }
+      .stat-value {
+        font-family: ui-monospace, monospace;
+        font-size: 13px;
+        margin-top: 2px;
+      }
+      footer {
+        padding: 10px 14px;
+        border-top: 1px solid var(--border);
+        color: var(--mute);
+        font-size: 11px;
+        line-height: 1.4;
+      }
+      code {
+        font-family: ui-monospace, monospace;
+        color: var(--accent);
+        font-size: 11px;
+      }
+      .toast {
+        margin-top: 8px;
+        padding: 8px 10px;
+        background: rgba(34, 197, 94, 0.1);
+        border: 1px solid rgba(34, 197, 94, 0.3);
+        color: var(--success);
+        border-radius: 6px;
+        font-size: 11px;
+        display: none;
+      }
+      .toast.show { display: block; }
+      .toast.error {
+        background: rgba(239, 68, 68, 0.1);
+        border-color: rgba(239, 68, 68, 0.3);
+        color: var(--error);
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1><span class="dim">@cuit/</span>recorder</h1>
+      <p>Capture a session. Export JSON. Feed it to spec-gen or paste into Claude Code / Codex.</p>
+    </header>
+
+    <main>
+      <div class="row">
+        <span class="dot" id="status-dot"></span>
+        <span class="status" id="status-text">checking…</span>
+      </div>
+
+      <div class="button-row">
+        <button id="start" class="primary">Start recording</button>
+        <button id="stop" disabled>Stop</button>
+      </div>
+      <div class="button-row">
+        <button id="copy" disabled>Copy JSON</button>
+        <button id="download" disabled>Download</button>
+      </div>
+
+      <div class="stats">
+        <div class="stat">
+          <div class="stat-label">events</div>
+          <div class="stat-value" id="stat-events">—</div>
+        </div>
+        <div class="stat">
+          <div class="stat-label">__cuitDebug</div>
+          <div class="stat-value" id="stat-debug">—</div>
+        </div>
+      </div>
+
+      <div class="toast" id="toast"></div>
+    </main>
+
+    <footer>
+      Apps must expose <code>window.__cuitDebug.getState()</code> for state
+      snapshots to be captured. See the <code>@cuit/harness</code> docs.
+    </footer>
+
+    <script src="popup.js"></script>
+  </body>
+</html>
