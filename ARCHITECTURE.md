@@ -59,9 +59,13 @@ Layers 1–6 are validated against 8 historical SpeechLab waveform bugs. Layer 1
 │   ─ deterministic clock     ─ state snapshot hook   ─ dispatch helpers       │
 │   ─ synthetic dispatch                                                       │
 │                                                                              │
-│   @cuit/vue                 @cuit/adapters-*        @cuit/saas-connector     │
-│   ─ Vue adapter             ─ session-source        ─ opt-in SaaS link       │
-│                               normalizers          (separate package!)       │
+│   @cuit/vue                 @cuit/recorder          @cuit/recorder-extension │
+│   ─ Vue adapter             ─ first-party capture   ─ Chrome MV3 wrapper     │
+│                             ─ SessionEvent[] out    ─ popup · icons · drive  │
+│                                                                              │
+│   @cuit/adapters-*          @cuit/saas-connector                             │
+│   ─ third-party session     ─ opt-in SaaS link                               │
+│     normalizers (Jam,...)  (separate package!)                               │
 └──────────────────────────────────────────────────────────────────────────────┘
                                        │
                                        │ (only if customer installs saas-connector)

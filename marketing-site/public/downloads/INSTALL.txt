@@ -1,0 +1,37 @@
+complex-ui-tester recorder — alpha extension install
+======================================================
+
+1. Unzip cuit-recorder-alpha.zip — you'll get a folder with manifest.json
+   inside.
+
+2. Open Chrome.
+
+3. Visit chrome://extensions
+
+4. Toggle "Developer mode" (top-right).
+
+5. Click "Load unpacked".
+
+6. Select the unzipped folder.
+
+7. Pin the extension from the puzzle-piece menu.
+
+Use:
+
+1. Navigate to a page that exposes `window.__cuitDebug.getState()`.
+   (The demo app at proof-of-concept/packages/demo-app exposes it. Your
+    own app needs ~10 lines in a useEffect — see docs/11-recorder-extension.md
+    section 6.)
+
+2. Click the extension pin → Start recording.
+
+3. Reproduce a bug exactly as a user would.
+
+4. Stop → Copy JSON or Download.
+
+5. Paste the JSON into Claude Code, Codex, or Cursor with the prompt
+   in the .claude/skills/cuit-loop/SKILL.md file in the repo.
+
+Source: https://github.com/speechlabinc/complex-ui-tester/tree/main/proof-of-concept/packages/recorder-extension
+
+This is an ALPHA. Expect bugs. Report them to ryan@speechlab.ai.

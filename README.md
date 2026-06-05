@@ -49,35 +49,43 @@ Layer 12 — the LLM step extractor that turns a session into a spec — is the 
 ## Architecture at a glance
 
 ```
-┌──────────────────────────────────────────────────────────────────┐
-│  Session source (Jam / LogRocket / Sentry Replay / ...)          │
-└────────────────────┬─────────────────────────────────────────────┘
-                     │  rrweb-compatible event stream
-                     ▼
-       ┌─────────────────────────────┐
-       │  Adapter (OSS, @cuit/adapters-*) │
-       └────────────────────┬────────┘
-                            │  SessionEvent[]
-                            ▼
-       ┌─────────────────────────────┐         ┌──────────────────┐
-       │  AI Extractor (SaaS)        │ ◀─────▶ │  Prompt cache    │
-       │  3-pass LLM pipeline        │         │  (per-tenant)    │
-       └────────────────────┬────────┘         └──────────────────┘
-                            │  spec.ts (grounded in harness primitives)
-                            ▼
-       ┌─────────────────────────────┐
-       │  Runner cluster (SaaS)      │  → RED (reproduces bug)
-       │  Playwright + harness       │
-       └────────────────────┬────────┘
-                            │  PR opened via GitHub App
-                            ▼
-       ┌─────────────────────────────┐
-       │  Engineer review + fix      │  → GREEN
-       └─────────────────────────────┘
-                            │
-                            ▼
-                       CI gate forever
+ ┌──────────────────────────────────────┐    ┌────────────────────────────────────┐
+ │  PRIMARY — first-party (shipping)    │    │  ALTERNATE — third-party adapters  │
+ │  @cuit/recorder-extension (Chrome)   │    │  Jam · LogRocket · Sentry Replay   │
+ │  or @cuit/recorder npm module        │    │  FullStory · Datadog RUM           │
+ │  • pointer + state snapshots         │    │  • rrweb-compatible event stream   │
+ │  • semantic selectors                │    │  • OAuth / API-key pull            │
+ │  • no vendor, no account, local only │    │  • normalized via @cuit/adapters-* │
+ └────────────────────┬─────────────────┘    └─────────────────┬──────────────────┘
+                      │                                        │
+                      └─────────────────┬──────────────────────┘
+                                        │  SessionEvent[]  (one canonical shape)
+                                        ▼
+                          ┌─────────────────────────────┐         ┌──────────────────┐
+                          │  AI Extractor (SaaS)        │ ◀─────▶ │  Prompt cache    │
+                          │  3-pass LLM pipeline        │         │  (per-tenant)    │
+                          └────────────────┬────────────┘         └──────────────────┘
+                                           │  spec.ts (grounded in harness primitives)
+                                           ▼
+                          ┌─────────────────────────────┐
+                          │  Runner cluster             │  → RED (reproduces bug)
+                          │  Playwright + harness       │
+                          └────────────────┬────────────┘
+                                           │  PR opened via GitHub App
+                                           ▼
+                          ┌─────────────────────────────┐
+                          │  Agent or engineer review   │  → GREEN
+                          │  Claude Code · Codex ·      │
+                          │  Cursor · or a human        │
+                          └────────────────┬────────────┘
+                                           │
+                                           ▼
+                                      CI gate forever
 ```
+
+The first-party recorder is the **default** input. Third-party adapters
+are alternates for teams that already have a session-replay vendor
+deployed and want to feed those sessions in too.
 
 Full diagrams: see [`docs/02-library-architecture.md`](./docs/02-library-architecture.md) and [`docs/03-saas-platform.md`](./docs/03-saas-platform.md).
 

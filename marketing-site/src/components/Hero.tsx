@@ -88,7 +88,27 @@ export function Hero() {
 
           {/* CTAs */}
           <div className="flex flex-wrap items-center gap-3 mb-16">
-            <Button variant="primary" size="lg" onClick={scrollToDemo}>
+            <a href="/downloads/cuit-recorder-alpha.zip" download className="inline-flex">
+              <Button variant="primary" size="lg">
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 16 16"
+                  fill="none"
+                  aria-hidden="true"
+                >
+                  <path
+                    d="M8 2v9M4 7l4 4 4-4M2 14h12"
+                    stroke="currentColor"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+                Download the alpha (10 KB)
+              </Button>
+            </a>
+            <Button variant="outline" size="lg" onClick={scrollToDemo}>
               <svg
                 width="16"
                 height="16"

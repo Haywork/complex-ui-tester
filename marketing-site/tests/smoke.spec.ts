@@ -174,6 +174,37 @@ test.describe("home page (/) agentic loop", () => {
   });
 });
 
+test.describe("home page (/) recorder alpha", () => {
+  test("renders the RecorderAlpha section with download link, example capture, and agent invocation", async ({
+    page,
+  }) => {
+    await page.goto("/");
+    await expect(
+      page.getByRole("heading", { name: /Download the recorder/i, level: 2 })
+    ).toBeVisible();
+    // Real captured JSON content visible on the page.
+    await expect(page.locator("text=/cuit-session-/i").first()).toBeVisible();
+    // Claude Code / agent invocation snippet visible.
+    await expect(page.locator("text=/\\/cuit-loop/i").first()).toBeVisible();
+    // Download link present.
+    const downloadLinks = page.locator('a[href="/downloads/cuit-recorder-alpha.zip"]');
+    await expect(downloadLinks.first()).toBeVisible();
+  });
+
+  test("download link serves the zip with a binary content-type", async ({ page }) => {
+    const response = await page.request.get("/downloads/cuit-recorder-alpha.zip");
+    expect(response.status()).toBe(200);
+    const ct = response.headers()["content-type"] ?? "";
+    expect(ct).toMatch(/zip|octet-stream/i);
+    // Sanity: the zip should be at least a few KB.
+    const body = await response.body();
+    expect(body.length).toBeGreaterThan(4000);
+    // PK signature — every valid zip starts with these bytes.
+    expect(body[0]).toBe(0x50);
+    expect(body[1]).toBe(0x4b);
+  });
+});
+
 test.describe("/security", () => {
   test("renders headline and request-packet CTA", async ({ page }) => {
     const { errors, listener } = attachConsoleSink();
