@@ -9,7 +9,8 @@
     "typecheck": "tsc -b",
     "lint": "pnpm -r --filter=./packages/* run lint",
     "proof:loop": "tsx ./packages/runner/src/cli.ts",
-    "proof:agent-loop": "tsx ./packages/runner/src/cli-agent-loop.ts"
+    "proof:agent-loop": "tsx ./packages/runner/src/cli-agent-loop.ts",
+    "proof:real": "tsx ./packages/runner/src/cli-real-validation.ts"
   },
   "devDependencies": {
     "@types/node": "^20.14.0",
