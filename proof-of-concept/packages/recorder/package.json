@@ -9,6 +9,10 @@
     ".": {
       "types": "./src/index.ts",
       "default": "./src/index.ts"
+    },
+    "./translate-ui-react-bridge": {
+      "types": "./src/translate-ui-react-bridge.ts",
+      "default": "./src/translate-ui-react-bridge.ts"
     }
   },
   "scripts": {
