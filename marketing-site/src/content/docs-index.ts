@@ -128,6 +128,12 @@ export const DOCS: DocEntry[] = [
 
 export const TOP_LEVEL_DOCS = [
   {
+    name: "API reference",
+    description:
+      "OpenAPI 3.0 spec rendered live. Auth, endpoints, schemas, curl examples. Same source as the runtime server.",
+    href: "/docs/api",
+  },
+  {
     name: "README",
     description: "Project front door — start here.",
     href: `${GITHUB_BLOB}/README.md`,

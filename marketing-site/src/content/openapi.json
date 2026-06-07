@@ -1,0 +1,657 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "CUIT SaaS API",
+    "version": "0.1.0",
+    "description": "The CUIT data plane API. Customer recorders POST captured sessions; the warehouse auto-generates regression specs; insights expose flake rate and similar-session search. Used by the @cuit-saas/mcp MCP server, the @cuit/cli (future), and direct REST integrations.",
+    "contact": {
+      "name": "CUIT",
+      "url": "https://complex-ui-tester.vercel.app"
+    },
+    "license": {
+      "name": "Proprietary — see speechlabinc/cuit-saas README"
+    }
+  },
+  "servers": [
+    {
+      "url": "http://localhost:7710",
+      "description": "Local development"
+    },
+    {
+      "url": "https://cuit-saas-pilot.fly.dev",
+      "description": "Pilot (Fly.io + Neon)"
+    },
+    {
+      "url": "https://api.cuit.dev",
+      "description": "Production (lands sprint week 8)"
+    }
+  ],
+  "tags": [
+    {
+      "name": "ops",
+      "description": "Health and operations endpoints (no auth)"
+    },
+    {
+      "name": "sessions",
+      "description": "Capture session upload and retrieval"
+    },
+    {
+      "name": "specs",
+      "description": "Generated regression specs"
+    },
+    {
+      "name": "insights",
+      "description": "Per-tenant analytics"
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "description": "Per-tenant bearer token. Issued by the cuit-saas admin during onboarding. Pass as `Authorization: Bearer <token>`."
+      }
+    },
+    "schemas": {
+      "SessionUploadResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "tenant": {
+            "type": "string"
+          },
+          "event_count": {
+            "type": "integer"
+          },
+          "spec_id": {
+            "type": "string",
+            "nullable": true,
+            "format": "uuid"
+          },
+          "confidence": {
+            "type": "number",
+            "nullable": true,
+            "minimum": 0,
+            "maximum": 1
+          }
+        },
+        "required": [
+          "id",
+          "tenant",
+          "event_count",
+          "spec_id",
+          "confidence"
+        ]
+      },
+      "Error": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "issues": {
+            "type": "array",
+            "items": {
+              "nullable": true
+            }
+          }
+        },
+        "required": [
+          "error"
+        ]
+      },
+      "SessionEvent": {
+        "type": "object",
+        "properties": {
+          "seq": {
+            "type": "integer",
+            "example": 7
+          },
+          "vendor": {
+            "type": "string",
+            "example": "cuit"
+          },
+          "vendorEventId": {
+            "type": "string",
+            "example": "tur-001-p-10"
+          },
+          "ts": {
+            "type": "number",
+            "example": 1200
+          },
+          "wallClock": {
+            "type": "number",
+            "example": 1748952001200
+          },
+          "type": {
+            "type": "string",
+            "example": "pointer"
+          }
+        },
+        "required": [
+          "seq",
+          "vendor",
+          "vendorEventId",
+          "ts",
+          "wallClock",
+          "type"
+        ]
+      },
+      "SessionUpload": {
+        "type": "object",
+        "properties": {
+          "sessionId": {
+            "type": "string",
+            "minLength": 1,
+            "example": "tur-live-1717459200000"
+          },
+          "vendor": {
+            "type": "string",
+            "enum": [
+              "cuit",
+              "jam",
+              "logrocket",
+              "sentry-replay",
+              "fullstory",
+              "datadog-rum"
+            ],
+            "example": "cuit"
+          },
+          "createdAt": {
+            "type": "number"
+          },
+          "url": {
+            "type": "string",
+            "example": "http://localhost:3000/projects/abc?cuitRecorder=1"
+          },
+          "events": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SessionEvent"
+            },
+            "minItems": 1
+          },
+          "gitSha": {
+            "type": "string",
+            "example": "abc1234"
+          },
+          "gitBranch": {
+            "type": "string",
+            "example": "developNoWaveFormFinal"
+          },
+          "capturedByUserId": {
+            "type": "string",
+            "format": "uuid"
+          }
+        },
+        "required": [
+          "sessionId",
+          "vendor",
+          "url",
+          "events"
+        ]
+      },
+      "SessionListItem": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "session_id": {
+            "type": "string"
+          },
+          "vendor": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string"
+          },
+          "event_count": {
+            "type": "integer"
+          },
+          "pointer_count": {
+            "type": "integer"
+          },
+          "snapshot_count": {
+            "type": "integer"
+          },
+          "git_sha": {
+            "type": "string",
+            "nullable": true
+          },
+          "git_branch": {
+            "type": "string",
+            "nullable": true
+          },
+          "created_at": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "session_id",
+          "vendor",
+          "url",
+          "event_count",
+          "pointer_count",
+          "snapshot_count",
+          "git_sha",
+          "git_branch",
+          "created_at"
+        ]
+      },
+      "SessionListResponse": {
+        "type": "object",
+        "properties": {
+          "tenant": {
+            "type": "string"
+          },
+          "sessions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SessionListItem"
+            }
+          },
+          "count": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "tenant",
+          "sessions",
+          "count"
+        ]
+      },
+      "SpecListItem": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "session_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "model_version": {
+            "type": "string"
+          },
+          "confidence": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1
+          },
+          "auto_pr_eligible": {
+            "type": "boolean"
+          },
+          "created_at": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "session_id",
+          "model_version",
+          "confidence",
+          "auto_pr_eligible",
+          "created_at"
+        ]
+      },
+      "FlakeRateResponse": {
+        "type": "object",
+        "properties": {
+          "tenant": {
+            "type": "string"
+          },
+          "window": {
+            "type": "string"
+          },
+          "flake_rates": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "spec_id": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "runs": {
+                  "type": "integer"
+                },
+                "reds": {
+                  "type": "integer"
+                }
+              },
+              "required": [
+                "spec_id",
+                "runs",
+                "reds"
+              ]
+            }
+          }
+        },
+        "required": [
+          "tenant",
+          "window",
+          "flake_rates"
+        ]
+      }
+    },
+    "parameters": {}
+  },
+  "paths": {
+    "/healthz": {
+      "get": {
+        "tags": [
+          "ops"
+        ],
+        "summary": "Health check",
+        "description": "Returns 200 OK if the API process is alive. No auth required.",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "ok": {
+                      "type": "boolean"
+                    },
+                    "ts": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "ok",
+                    "ts"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/sessions": {
+      "post": {
+        "tags": [
+          "sessions"
+        ],
+        "summary": "Upload a captured session",
+        "description": "Accepts a SessionEvent[] captured by the recorder. Auto-generates a regression spec when feasible (rule-based today; LLM pipeline ships sprint week 5). Idempotent on (tenant_id, session_id).",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SessionUpload"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Session stored. Spec may have been generated.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SessionUploadResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid payload",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid bearer token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "sessions"
+        ],
+        "summary": "List sessions for the authenticated tenant",
+        "description": "Returns up to `limit` most-recent sessions ordered by created_at DESC.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "example": "50"
+            },
+            "required": false,
+            "name": "limit",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SessionListResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid bearer token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/sessions/{id}": {
+      "get": {
+        "tags": [
+          "sessions"
+        ],
+        "summary": "Fetch one session by id",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "tenant": {
+                      "type": "string"
+                    },
+                    "session": {
+                      "allOf": [
+                        {
+                          "$ref": "#/components/schemas/SessionListItem"
+                        },
+                        {
+                          "type": "object",
+                          "properties": {
+                            "events": {
+                              "type": "array",
+                              "items": {
+                                "$ref": "#/components/schemas/SessionEvent"
+                              }
+                            }
+                          },
+                          "required": [
+                            "events"
+                          ]
+                        }
+                      ]
+                    }
+                  },
+                  "required": [
+                    "tenant",
+                    "session"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid bearer token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Session not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/specs": {
+      "get": {
+        "tags": [
+          "specs"
+        ],
+        "summary": "List generated specs for the authenticated tenant",
+        "description": "Returns up to 100 most-recent specs ordered by created_at DESC.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "tenant": {
+                      "type": "string"
+                    },
+                    "specs": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/SpecListItem"
+                      }
+                    }
+                  },
+                  "required": [
+                    "tenant",
+                    "specs"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid bearer token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/insights/flake-rate": {
+      "get": {
+        "tags": [
+          "insights"
+        ],
+        "summary": "Per-spec flake rate over the last 28 days",
+        "description": "Returns up to 20 specs ordered by flake rate descending. A spec with `reds`/`runs` close to 1.0 is highly unstable.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FlakeRateResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid bearer token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
