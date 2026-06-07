@@ -1,0 +1,85 @@
+{
+  "skill_name": "cuit-loop",
+  "evals": [
+    {
+      "id": 1,
+      "name": "pasted-session-json",
+      "should_trigger": true,
+      "prompt": "here's a session i recorded with the chrome extension: {\"sessionId\":\"sess-001\",\"vendor\":\"cuit\",\"createdAt\":1748952000000,\"url\":\"http://localhost:5173\",\"events\":[{\"seq\":0,\"vendor\":\"cuit\",\"vendorEventId\":\"e0\",\"ts\":0,\"wallClock\":1748952000000,\"type\":\"nav\",\"url\":\"http://localhost:5173\"},{\"seq\":1,\"vendor\":\"cuit\",\"vendorEventId\":\"e1\",\"ts\":100,\"wallClock\":1748952000100,\"type\":\"pointer\",\"phase\":\"down\",\"targetName\":\"seg-0\",\"x\":40,\"y\":32,\"pointerId\":1}]}. can you generate a spec and run it against my app?",
+      "expected_output": "Skill triggers. Claude calls @cuit/spec-gen, generates a .spec.ts, runs it, auto-detects flow A vs B based on first-run outcome.",
+      "files": []
+    },
+    {
+      "id": 2,
+      "name": "attached-session-file",
+      "should_trigger": true,
+      "prompt": "i attached a cuit-session.json file. close the loop please — generate a spec from it and verify it gates the bug i was reproducing.",
+      "expected_output": "Skill triggers. Reads the attached file, runs spec-gen, executes the spec, reports RED/GREEN with flow auto-detection.",
+      "files": ["cuit-session.json"]
+    },
+    {
+      "id": 3,
+      "name": "explicit-cuit-loop-mention",
+      "should_trigger": true,
+      "prompt": "/cuit-loop with the session at proof-of-concept/fixtures/translate-ui-react-drag-after-resize.json",
+      "expected_output": "Skill triggers. Explicit invocation against a fixture path.",
+      "files": []
+    },
+    {
+      "id": 4,
+      "name": "vendor-adapter-session",
+      "should_trigger": true,
+      "prompt": "I have a Jam session export at /tmp/jam-export.json — can you run it through the cuit loop and create a regression test from what the user did?",
+      "expected_output": "Skill triggers. Normalizes the Jam session via the adapter, runs spec-gen, executes.",
+      "files": []
+    },
+    {
+      "id": 5,
+      "name": "baseline-lock-in-flow-b",
+      "should_trigger": true,
+      "prompt": "Here's a session JSON of me using the brand new checkout flow on staging — everything works. Can you lock it in as a regression baseline so we catch any future drift?",
+      "expected_output": "Skill triggers. Generates spec, runs against staging, expects GREEN first time, commits as Flow B baseline lock-in.",
+      "files": []
+    },
+    {
+      "id": 6,
+      "name": "instrument-not-loop",
+      "should_trigger": false,
+      "prompt": "i just signed up for CUIT and want to wire it into my Next.js app. how do i actually get it set up so my dev sessions start flowing to the warehouse?",
+      "expected_output": "/cuit-instrument should trigger, NOT /cuit-loop. This is wire-up, not loop-running. The two skills are explicitly partitioned by whether the app is already instrumented.",
+      "files": []
+    },
+    {
+      "id": 7,
+      "name": "generic-spec-question",
+      "should_trigger": false,
+      "prompt": "how does playwright handle drag and drop events? mine keep flaking randomly.",
+      "expected_output": "Neither skill should trigger. No session JSON, no CUIT context — just a generic Playwright debugging question.",
+      "files": []
+    },
+    {
+      "id": 8,
+      "name": "no-session-just-bug-report",
+      "should_trigger": false,
+      "prompt": "users keep reporting that the segment drag bug is back in production. can you investigate and write a regression test?",
+      "expected_output": "Should NOT trigger /cuit-loop without a session. Claude should ask the developer to first record the bug with the recorder (then run /cuit-loop). Or suggest /cuit-instrument if the app isn't wired up yet.",
+      "files": []
+    },
+    {
+      "id": 9,
+      "name": "ambiguous-spec-from-bug",
+      "should_trigger": false,
+      "prompt": "write me a playwright regression spec for this bug: when you drag a segment past another, the first one snaps back instead of moving.",
+      "expected_output": "Should NOT trigger /cuit-loop (no session JSON). Claude should write a hand-authored Playwright spec from the prose description OR suggest using the recorder + /cuit-loop instead.",
+      "files": []
+    },
+    {
+      "id": 10,
+      "name": "session-without-loop-intent",
+      "should_trigger": true,
+      "prompt": "got this from the chrome extension. dunno what to do with it next. cuit-session.json attached.",
+      "expected_output": "Should trigger /cuit-loop. The user has a session JSON and is uncertain what to do — /cuit-loop is exactly the right routing.",
+      "files": ["cuit-session.json"]
+    }
+  ]
+}

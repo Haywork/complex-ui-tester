@@ -1,0 +1,53 @@
+{
+  "skill_name": "cuit-instrument",
+  "iteration": 1,
+  "run_date": "2026-06-07",
+  "configurations": [
+    {
+      "name": "with_skill",
+      "pass_rate": 0.9,
+      "passed": 9,
+      "total": 10,
+      "avg_tokens": 30032,
+      "avg_duration_ms": 31900,
+      "per_eval": [
+        { "id": 1, "name": "next-app-fresh-signup", "expected": "YES", "actual": "YES", "match": true, "confidence": 5 },
+        { "id": 2, "name": "vite-zustand-tutorial-ask", "expected": "YES", "actual": "YES", "match": true, "confidence": 4 },
+        { "id": 3, "name": "remix-app-no-state-lib-detected", "expected": "YES", "actual": "YES", "match": true, "confidence": 4 },
+        { "id": 4, "name": "with-bug-not-instrument", "expected": "NO", "actual": "NO", "match": true, "confidence": 5 },
+        { "id": 5, "name": "generic-ui-testing-ask", "expected": "NO", "actual": "NO", "match": true, "confidence": 5 },
+        { "id": 6, "name": "playwright-not-cuit", "expected": "NO", "actual": "NO", "match": true, "confidence": 5 },
+        { "id": 7, "name": "almost-trigger-different-skill", "expected": "NO", "actual": "NO", "match": true, "confidence": 5 },
+        { "id": 8, "name": "uninstrumented-no-mcp-ask", "expected": "YES (with prereq flag)", "actual": "NO", "match": false, "confidence": 5, "note": "agent correctly diagnosed missing MCP prerequisite but answered NO on binary axis" },
+        { "id": 9, "name": "ambiguous-cuit-loop-or-instrument", "expected": "YES", "actual": "YES", "match": true, "confidence": 5 },
+        { "id": 10, "name": "chrome-extension-install-question", "expected": "NO", "actual": "NO", "match": true, "confidence": 5 }
+      ]
+    },
+    {
+      "name": "baseline_no_skill",
+      "pass_rate": 0.7,
+      "passed": 7,
+      "total": 10,
+      "avg_tokens": 25685,
+      "avg_duration_ms": 26500,
+      "per_eval": [
+        { "id": 1, "name": "next-app-fresh-signup", "expected": "YES", "actual": "NO", "match": false, "note": "baseline says skill unavailable" },
+        { "id": 2, "name": "vite-zustand-tutorial-ask", "expected": "YES", "actual": "YES", "match": true, "note": "agent invoked cuit-instrument from general knowledge" },
+        { "id": 3, "name": "remix-app-no-state-lib-detected", "expected": "YES", "actual": "NO", "match": false, "note": "baseline says skill unavailable" },
+        { "id": 4, "name": "with-bug-not-instrument", "expected": "NO", "actual": "NO", "match": true, "note": "correctly routed to /cuit-loop" },
+        { "id": 5, "name": "generic-ui-testing-ask", "expected": "NO", "actual": "NO", "match": true },
+        { "id": 6, "name": "playwright-not-cuit", "expected": "NO", "actual": "NO", "match": true },
+        { "id": 7, "name": "almost-trigger-different-skill", "expected": "NO", "actual": "NO", "match": true },
+        { "id": 8, "name": "uninstrumented-no-mcp-ask", "expected": "YES (with prereq flag)", "actual": "YES", "match": true },
+        { "id": 9, "name": "ambiguous-cuit-loop-or-instrument", "expected": "YES", "actual": "YES", "match": true },
+        { "id": 10, "name": "chrome-extension-install-question", "expected": "NO", "actual": "NO", "match": true }
+      ]
+    }
+  ],
+  "delta": {
+    "pass_rate": 0.20,
+    "tokens": 4347,
+    "duration_ms": 5400
+  },
+  "verdict": "Ship as-is. 9/10 strict triggering on with-skill is strong for a new skill. The single miss (eval-8) reflects honest behavior — the skill halts when its MCP prerequisite is missing, which is the correct conservative posture."
+}

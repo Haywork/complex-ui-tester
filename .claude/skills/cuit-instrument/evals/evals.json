@@ -1,0 +1,85 @@
+{
+  "skill_name": "cuit-instrument",
+  "evals": [
+    {
+      "id": 1,
+      "name": "next-app-fresh-signup",
+      "should_trigger": true,
+      "prompt": "ok i just signed up for cuit-saas with the speechlab tenant for our translate-ui-react editor. its a next 16 + zustand + react 19 app at /Users/ryanmedlin/speechlab/translate-ui-react. how do i actually get it wired up so sessions start flowing into the warehouse? i have the bearer token in 1Password as cuit-pilot-token. fwiw im in claude code with the cuit MCP server already connected.",
+      "expected_output": "Skill should be invoked. Claude follows the 5-step procedure: calls cuit__detect_app_shape, then cuit__propose_instrumentation, then applies the diff via Edit/Write, runs pnpm install + typecheck, then calls cuit__verify_session_round_trip, then summarizes. Should NOT use vague language; should reference specific MCP tool calls and the recorder bridge pattern.",
+      "files": []
+    },
+    {
+      "id": 2,
+      "name": "vite-zustand-tutorial-ask",
+      "should_trigger": true,
+      "prompt": "we have a Vite + Preact + Jotai dashboard at apps/internal-dash. team just got CUIT access. walk me through wiring it in pls — preferring we dont touch much code and that prod bundle stays untouched. cwd is the dashboard root.",
+      "expected_output": "Skill triggers. Claude runs detect_app_shape, which returns framework=vite, state_libs=[jotai], ui_libs=[preact]. Proposes instrumentation with NODE_ENV gate + ?cuitRecorder=1 URL param gate. Asks user to confirm diff before applying.",
+      "files": []
+    },
+    {
+      "id": 3,
+      "name": "remix-app-no-state-lib-detected",
+      "should_trigger": true,
+      "prompt": "i want to start using CUIT on our Remix app. its a customer-portal at apps/portal. we dont really use a state lib — we just pass props down and use React Context in a few spots. is that going to be a problem? how do i wire it up?",
+      "expected_output": "Skill triggers. detect_app_shape returns state_libs=['context'] or empty. Claude asks the user which Context provides app state, then proceeds with manual override. Does not give up; explains the fallback to pointer-only assertions if state hook can't be wired.",
+      "files": []
+    },
+    {
+      "id": 4,
+      "name": "with-bug-not-instrument",
+      "should_trigger": false,
+      "prompt": "i recorded a session with the chrome extension and now i have a session JSON. here it is: {\"sessionId\":\"abc\",\"vendor\":\"cuit\",\"events\":[...]}. can you generate a Playwright spec from this and run it against my app to make sure the bug is reproduced?",
+      "expected_output": "/cuit-loop should trigger, NOT /cuit-instrument. This is using CUIT, not wiring it up. The skill description should make this distinction clear so Claude routes correctly.",
+      "files": []
+    },
+    {
+      "id": 5,
+      "name": "generic-ui-testing-ask",
+      "should_trigger": false,
+      "prompt": "whats the best framework for testing my React app? we have a lot of complex drag-and-drop interactions and current tests keep flaking. should i use Cypress or Playwright?",
+      "expected_output": "Neither cuit-instrument nor cuit-loop should trigger. This is a generic testing question without CUIT context. Claude should give general guidance on Playwright vs Cypress, possibly mention CUIT exists, but not invoke the instrumentation skill.",
+      "files": []
+    },
+    {
+      "id": 6,
+      "name": "playwright-not-cuit",
+      "should_trigger": false,
+      "prompt": "set up Playwright in my Next.js app at /Users/dev/my-app. i need basic config + a smoke test that opens the home page and clicks the login button.",
+      "expected_output": "Should NOT trigger cuit-instrument. This is plain Playwright setup, not CUIT instrumentation. Claude should write the Playwright config + test directly without invoking the MCP-based instrumentation flow.",
+      "files": []
+    },
+    {
+      "id": 7,
+      "name": "almost-trigger-different-skill",
+      "should_trigger": false,
+      "prompt": "my generated cuit spec is failing in CI but passes locally. how do i debug it? the failure says expected segments[0].x to be 100 but got 25.",
+      "expected_output": "Should NOT trigger cuit-instrument (this is a CUIT-using question, not a wire-up question). cuit-loop is closer but mostly this is a debugging question. Claude should engage on debugging directly.",
+      "files": []
+    },
+    {
+      "id": 8,
+      "name": "uninstrumented-no-mcp-ask",
+      "should_trigger": true,
+      "prompt": "hey our team is about to start a CUIT pilot next week. weve got an Astro + Solid.js app. how would we get instrumented? we dont have the CUIT MCP setup yet — does that block us?",
+      "expected_output": "Skill triggers. Claude recognizes the MCP server isn't connected, points the developer to the setup docs (https://complex-ui-tester.vercel.app/docs/mcp), then walks through what the runbook will do once MCP is up. Doesn't try to proceed without the tools — fails the prerequisite check honestly.",
+      "files": []
+    },
+    {
+      "id": 9,
+      "name": "ambiguous-cuit-loop-or-instrument",
+      "should_trigger": true,
+      "prompt": "set up cuit on this repo",
+      "expected_output": "Short ask. Should trigger cuit-instrument (we're being asked to SET UP cuit, not run a loop). Claude clarifies if needed — e.g., asks 'is this a fresh wire-up or do you already have a session JSON?' — but defaults to instrument flow.",
+      "files": []
+    },
+    {
+      "id": 10,
+      "name": "chrome-extension-install-question",
+      "should_trigger": false,
+      "prompt": "how do i install the cuit chrome extension? i went to the chrome web store but couldnt find it.",
+      "expected_output": "Should NOT trigger cuit-instrument. This is a Chrome extension distribution question, not an app instrumentation question. Claude should explain the alpha installation flow (load unpacked from the public repo) without invoking the MCP instrumentation runbook.",
+      "files": []
+    }
+  ]
+}
