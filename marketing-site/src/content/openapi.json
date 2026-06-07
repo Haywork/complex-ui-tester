@@ -14,16 +14,16 @@
   },
   "servers": [
     {
+      "url": "https://cuit-saas-pilot.fly.dev",
+      "description": "Pilot — LIVE today on Fly.io (IAD) + Neon (us-east-1)"
+    },
+    {
       "url": "http://localhost:7710",
       "description": "Local development"
     },
     {
-      "url": "https://cuit-saas-pilot.fly.dev",
-      "description": "Pilot (Fly.io + Neon)"
-    },
-    {
       "url": "https://api.cuit.dev",
-      "description": "Production (lands sprint week 8)"
+      "description": "Production — sprint week 8 (AWS ECS Fargate + Aurora)"
     }
   ],
   "tags": [
