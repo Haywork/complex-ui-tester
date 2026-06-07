@@ -53,6 +53,7 @@ type Operation = {
     required?: boolean;
   };
   responses: Record<string, Response>;
+  "x-cuit-status"?: string;
 };
 
 type PathItem = Partial<
@@ -176,6 +177,30 @@ function MethodBadge({ method }: { method: string }) {
   );
 }
 
+function StatusBadge({ status }: { status?: string }) {
+  if (!status) return null;
+  if (status === "live") {
+    return (
+      <span className="font-mono text-[10px] uppercase tracking-wider px-2 py-0.5 rounded border bg-emerald-500/15 text-emerald-300 border-emerald-500/40">
+        live
+      </span>
+    );
+  }
+  const m = /^planned-week-(\d+)$/.exec(status);
+  if (m) {
+    return (
+      <span className="font-mono text-[10px] uppercase tracking-wider px-2 py-0.5 rounded border bg-amber-500/10 text-amber-300 border-amber-500/30">
+        planned · sprint w{m[1]}
+      </span>
+    );
+  }
+  return (
+    <span className="font-mono text-[10px] uppercase tracking-wider px-2 py-0.5 rounded border bg-zinc-700/40 text-zinc-300 border-zinc-600/40">
+      {status}
+    </span>
+  );
+}
+
 function SchemaTable({
   schema,
   components,
@@ -278,6 +303,7 @@ function EndpointCard({
         <div className="flex items-center gap-3 flex-wrap">
           <MethodBadge method={method} />
           <code className="font-mono text-sm text-[var(--text-primary)]">{path}</code>
+          <StatusBadge status={op["x-cuit-status"]} />
           <span className="font-mono text-[10px] uppercase tracking-widest text-[var(--text-tertiary)] ml-auto">
             {tagName}
           </span>

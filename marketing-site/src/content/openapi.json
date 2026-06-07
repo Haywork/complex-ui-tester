@@ -32,6 +32,10 @@
       "description": "Health and operations endpoints (no auth)"
     },
     {
+      "name": "admin",
+      "description": "Tenant + token management. Admin or tenant-bearer auth."
+    },
+    {
       "name": "sessions",
       "description": "Capture session upload and retrieval"
     },
@@ -40,8 +44,20 @@
       "description": "Generated regression specs"
     },
     {
+      "name": "runs",
+      "description": "Spec executions against customer URLs"
+    },
+    {
+      "name": "instrument",
+      "description": "App-shape detection and instrumentation proposals (powers /cuit-instrument skill)"
+    },
+    {
       "name": "insights",
-      "description": "Per-tenant analytics"
+      "description": "Per-tenant analytics (flake rate, bug-class distribution)"
+    },
+    {
+      "name": "billing",
+      "description": "Usage stats and Stripe subscription details"
     }
   ],
   "components": {
@@ -50,6 +66,11 @@
         "type": "http",
         "scheme": "bearer",
         "description": "Per-tenant bearer token. Issued by the cuit-saas admin during onboarding. Pass as `Authorization: Bearer <token>`."
+      },
+      "adminAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "description": "CUIT admin bearer token. Issued by the CUIT operations team for tenant management. Customers do not have this."
       }
     },
     "schemas": {
@@ -342,6 +363,713 @@
           "window",
           "flake_rates"
         ]
+      },
+      "Tenant": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "slug": {
+            "type": "string"
+          },
+          "display_name": {
+            "type": "string"
+          },
+          "tier": {
+            "type": "string",
+            "enum": [
+              "team",
+              "business",
+              "enterprise"
+            ]
+          },
+          "created_at": {
+            "type": "string"
+          },
+          "settings": {
+            "type": "object",
+            "additionalProperties": {
+              "nullable": true
+            }
+          }
+        },
+        "required": [
+          "id",
+          "slug",
+          "display_name",
+          "tier",
+          "created_at",
+          "settings"
+        ]
+      },
+      "TokenIssueResponse": {
+        "type": "object",
+        "properties": {
+          "token": {
+            "type": "string",
+            "description": "Plaintext bearer token. Shown ONCE; we store only a hash. Save it now.",
+            "example": "cuit_tk_live_8f9a3c2e1b..."
+          },
+          "token_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "label": {
+            "type": "string"
+          },
+          "created_at": {
+            "type": "string"
+          },
+          "expires_at": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "required": [
+          "token",
+          "token_id",
+          "label",
+          "created_at",
+          "expires_at"
+        ]
+      },
+      "TenantCreateRequest": {
+        "type": "object",
+        "properties": {
+          "slug": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 64,
+            "example": "acme-corp"
+          },
+          "display_name": {
+            "type": "string",
+            "minLength": 1,
+            "example": "Acme Corp"
+          },
+          "tier": {
+            "type": "string",
+            "enum": [
+              "team",
+              "business",
+              "enterprise"
+            ],
+            "example": "business"
+          },
+          "pii_redaction": {
+            "type": "boolean",
+            "default": true
+          },
+          "retention_days": {
+            "type": "integer",
+            "minimum": 30,
+            "maximum": 3650,
+            "default": 365
+          }
+        },
+        "required": [
+          "slug",
+          "display_name",
+          "tier"
+        ]
+      },
+      "TokenIssueRequest": {
+        "type": "object",
+        "properties": {
+          "label": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128,
+            "example": "github-actions-ci"
+          },
+          "expires_at": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2027-01-01T00:00:00Z"
+          }
+        },
+        "required": [
+          "label"
+        ]
+      },
+      "Primitive": {
+        "type": "object",
+        "properties": {
+          "kind": {
+            "type": "string",
+            "enum": [
+              "goto",
+              "setClock",
+              "getStateSnapshot",
+              "dispatchDrag",
+              "dispatchResize",
+              "dispatchKey",
+              "dispatchScroll",
+              "assertStateEquals",
+              "assertStateMatches"
+            ]
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "SpecDetail": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "session_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "model_version": {
+            "type": "string"
+          },
+          "confidence": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1
+          },
+          "auto_pr_eligible": {
+            "type": "boolean"
+          },
+          "primitives": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Primitive"
+            }
+          },
+          "serialized": {
+            "type": "string",
+            "description": "The rendered .spec.ts source code."
+          },
+          "created_at": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "session_id",
+          "model_version",
+          "confidence",
+          "auto_pr_eligible",
+          "primitives",
+          "serialized",
+          "created_at"
+        ]
+      },
+      "SpecGenerateRequest": {
+        "type": "object",
+        "properties": {
+          "sessionId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Existing session UUID OR session payload below."
+          },
+          "session": {
+            "$ref": "#/components/schemas/SessionUpload"
+          },
+          "model_tier": {
+            "type": "string",
+            "enum": [
+              "rule-based",
+              "haiku",
+              "sonnet",
+              "opus",
+              "auto"
+            ],
+            "default": "auto"
+          },
+          "force_regenerate": {
+            "type": "boolean",
+            "default": false
+          }
+        }
+      },
+      "StepAnnotation": {
+        "type": "object",
+        "properties": {
+          "step_index": {
+            "type": "integer"
+          },
+          "primitive": {
+            "$ref": "#/components/schemas/Primitive"
+          },
+          "ts_ms": {
+            "type": "number"
+          },
+          "state_snapshot": {
+            "type": "object",
+            "additionalProperties": {
+              "nullable": true
+            }
+          },
+          "pointer_event": {
+            "type": "object",
+            "additionalProperties": {
+              "nullable": true
+            }
+          }
+        },
+        "required": [
+          "step_index",
+          "primitive",
+          "ts_ms"
+        ]
+      },
+      "RunResult": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "spec_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "outcome": {
+            "type": "string",
+            "enum": [
+              "red",
+              "green",
+              "error"
+            ]
+          },
+          "browser": {
+            "type": "string"
+          },
+          "duration_ms": {
+            "type": "integer"
+          },
+          "git_sha_at_run": {
+            "type": "string",
+            "nullable": true
+          },
+          "is_flake": {
+            "type": "boolean"
+          },
+          "created_at": {
+            "type": "string"
+          },
+          "state_at_assertion": {
+            "type": "object",
+            "nullable": true,
+            "additionalProperties": {
+              "nullable": true
+            }
+          },
+          "failed_at_primitive": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Primitive"
+              },
+              {
+                "nullable": true,
+                "description": "When outcome=red: the harness primitive whose assertion failed."
+              }
+            ]
+          },
+          "last_snapshot": {
+            "type": "object",
+            "nullable": true,
+            "additionalProperties": {
+              "nullable": true
+            },
+            "description": "When outcome=red: the state snapshot at the moment of failure."
+          },
+          "preceding_events": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": {
+                "nullable": true
+              }
+            },
+            "description": "When outcome=red: the last N events before failure for context."
+          },
+          "steps": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/StepAnnotation"
+            }
+          }
+        },
+        "required": [
+          "id",
+          "spec_id",
+          "outcome",
+          "browser",
+          "duration_ms",
+          "git_sha_at_run",
+          "is_flake",
+          "created_at"
+        ]
+      },
+      "RunRequest": {
+        "type": "object",
+        "properties": {
+          "target_url": {
+            "type": "string",
+            "format": "uri",
+            "example": "http://localhost:3000/projects/abc?cuitRecorder=1"
+          },
+          "browser": {
+            "type": "string",
+            "enum": [
+              "chromium",
+              "firefox",
+              "webkit",
+              "jsdom"
+            ],
+            "default": "chromium"
+          },
+          "expected_outcome": {
+            "type": "string",
+            "enum": [
+              "red",
+              "green",
+              "either"
+            ],
+            "default": "either"
+          }
+        },
+        "required": [
+          "target_url"
+        ]
+      },
+      "SimilarSessionsResponse": {
+        "type": "object",
+        "properties": {
+          "reference_session_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "threshold": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1
+          },
+          "similar": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "session_id": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "cosine_similarity": {
+                  "type": "number"
+                },
+                "created_at": {
+                  "type": "string"
+                },
+                "url": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "session_id",
+                "cosine_similarity",
+                "created_at",
+                "url"
+              ]
+            }
+          }
+        },
+        "required": [
+          "reference_session_id",
+          "threshold",
+          "similar"
+        ]
+      },
+      "BugClassDistributionResponse": {
+        "type": "object",
+        "properties": {
+          "tenant": {
+            "type": "string"
+          },
+          "window": {
+            "type": "string"
+          },
+          "classes": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "label": {
+                  "type": "string"
+                },
+                "count": {
+                  "type": "integer"
+                },
+                "most_recent_at": {
+                  "type": "string"
+                },
+                "example_spec_id": {
+                  "type": "string",
+                  "nullable": true,
+                  "format": "uuid"
+                }
+              },
+              "required": [
+                "label",
+                "count",
+                "most_recent_at",
+                "example_spec_id"
+              ]
+            }
+          }
+        },
+        "required": [
+          "tenant",
+          "window",
+          "classes"
+        ]
+      },
+      "AppShapeResponse": {
+        "type": "object",
+        "properties": {
+          "framework": {
+            "type": "string",
+            "enum": [
+              "next.js",
+              "vite",
+              "cra",
+              "remix",
+              "astro",
+              "sveltekit",
+              "unknown"
+            ]
+          },
+          "router": {
+            "type": "string",
+            "nullable": true
+          },
+          "state_libs": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "ui_libs": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "test_runner": {
+            "type": "string",
+            "nullable": true
+          },
+          "pkg_manager": {
+            "type": "string",
+            "enum": [
+              "pnpm",
+              "npm",
+              "yarn",
+              "bun"
+            ]
+          },
+          "selectors_in_use": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "integer"
+            }
+          },
+          "candidate_state_files": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "candidate_root_files": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "framework",
+          "router",
+          "state_libs",
+          "ui_libs",
+          "test_runner",
+          "pkg_manager",
+          "selectors_in_use",
+          "candidate_state_files",
+          "candidate_root_files"
+        ]
+      },
+      "InstrumentationOperation": {
+        "type": "object",
+        "properties": {
+          "action": {
+            "type": "string",
+            "enum": [
+              "create",
+              "edit",
+              "noop"
+            ]
+          },
+          "file": {
+            "type": "string"
+          },
+          "content": {
+            "type": "string"
+          },
+          "before": {
+            "type": "string"
+          },
+          "after": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "action",
+          "file"
+        ]
+      },
+      "InstrumentationProposal": {
+        "type": "object",
+        "properties": {
+          "operations": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/InstrumentationOperation"
+            }
+          },
+          "npm_dependencies": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "github_actions_secrets": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "estimated_minutes": {
+            "type": "integer"
+          },
+          "rationale": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "operations",
+          "npm_dependencies",
+          "github_actions_secrets",
+          "estimated_minutes",
+          "rationale"
+        ]
+      },
+      "BillingUsageResponse": {
+        "type": "object",
+        "properties": {
+          "tenant": {
+            "type": "string"
+          },
+          "period_start": {
+            "type": "string"
+          },
+          "period_end": {
+            "type": "string"
+          },
+          "seats_active": {
+            "type": "integer"
+          },
+          "sessions_uploaded": {
+            "type": "integer"
+          },
+          "specs_generated": {
+            "type": "integer"
+          },
+          "specs_run": {
+            "type": "integer"
+          },
+          "inference_tokens": {
+            "type": "integer"
+          },
+          "estimated_cost_usd": {
+            "type": "number"
+          },
+          "tier": {
+            "type": "string",
+            "enum": [
+              "team",
+              "business",
+              "enterprise"
+            ]
+          }
+        },
+        "required": [
+          "tenant",
+          "period_start",
+          "period_end",
+          "seats_active",
+          "sessions_uploaded",
+          "specs_generated",
+          "specs_run",
+          "inference_tokens",
+          "estimated_cost_usd",
+          "tier"
+        ]
+      },
+      "SubscriptionResponse": {
+        "type": "object",
+        "properties": {
+          "tenant": {
+            "type": "string"
+          },
+          "stripe_subscription_id": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "active",
+              "past_due",
+              "canceled",
+              "trialing"
+            ]
+          },
+          "tier": {
+            "type": "string",
+            "enum": [
+              "team",
+              "business",
+              "enterprise"
+            ]
+          },
+          "current_period_end": {
+            "type": "string"
+          },
+          "cancel_at_period_end": {
+            "type": "boolean"
+          },
+          "customer_portal_url": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "tenant",
+          "stripe_subscription_id",
+          "status",
+          "tier",
+          "current_period_end",
+          "cancel_at_period_end",
+          "customer_portal_url"
+        ]
       }
     },
     "parameters": {}
@@ -354,6 +1082,7 @@
         ],
         "summary": "Health check",
         "description": "Returns 200 OK if the API process is alive. No auth required.",
+        "x-cuit-status": "live",
         "responses": {
           "200": {
             "description": "OK",
@@ -392,6 +1121,7 @@
             "bearerAuth": []
           }
         ],
+        "x-cuit-status": "live",
         "requestBody": {
           "content": {
             "application/json": {
@@ -445,6 +1175,7 @@
             "bearerAuth": []
           }
         ],
+        "x-cuit-status": "live",
         "parameters": [
           {
             "schema": {
@@ -491,6 +1222,7 @@
             "bearerAuth": []
           }
         ],
+        "x-cuit-status": "live",
         "parameters": [
           {
             "schema": {
@@ -578,6 +1310,7 @@
             "bearerAuth": []
           }
         ],
+        "x-cuit-status": "live",
         "responses": {
           "200": {
             "description": "OK",
@@ -629,6 +1362,7 @@
             "bearerAuth": []
           }
         ],
+        "x-cuit-status": "live",
         "responses": {
           "200": {
             "description": "OK",
@@ -642,6 +1376,937 @@
           },
           "401": {
             "description": "Missing or invalid bearer token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/admin/tenants": {
+      "post": {
+        "tags": [
+          "admin"
+        ],
+        "summary": "Create a new tenant",
+        "description": "Admin-only. Issues an initial bearer token returned in the response. Token is shown ONCE; we store only its hash. Customer onboarding flow uses this endpoint.",
+        "security": [
+          {
+            "adminAuth": []
+          }
+        ],
+        "x-cuit-status": "planned-week-2",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TenantCreateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Tenant created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "tenant": {
+                      "$ref": "#/components/schemas/Tenant"
+                    },
+                    "initial_token": {
+                      "$ref": "#/components/schemas/TokenIssueResponse"
+                    }
+                  },
+                  "required": [
+                    "tenant",
+                    "initial_token"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Admin auth required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Slug already in use",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/admin/tokens": {
+      "post": {
+        "tags": [
+          "admin"
+        ],
+        "summary": "Issue a new bearer token for the current tenant",
+        "description": "Used to rotate tokens or to issue scoped tokens for specific environments (CI vs. dev). Token shown ONCE in the response.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "x-cuit-status": "planned-week-2",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TokenIssueRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Token issued",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TokenIssueResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid bearer token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/me": {
+      "get": {
+        "tags": [
+          "admin"
+        ],
+        "summary": "Current tenant info",
+        "description": "Returns the tenant resolved from the bearer token. Useful for the dashboard.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "x-cuit-status": "planned-week-2",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "tenant": {
+                      "$ref": "#/components/schemas/Tenant"
+                    }
+                  },
+                  "required": [
+                    "tenant"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/specs/generate": {
+      "post": {
+        "tags": [
+          "specs"
+        ],
+        "summary": "Generate a spec synchronously from a session payload OR session id",
+        "description": "POST /v1/sessions auto-generates a spec asynchronously. Use this endpoint when you want the spec back in the same HTTP response — typical for CI integrations or the /cuit-loop skill. Calls the LLM 3-pass pipeline (Haiku normalize → Sonnet ground → Opus materialize) with prompt caching; falls back to rule-based when model_tier=rule-based.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "x-cuit-status": "planned-week-3",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SpecGenerateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Spec generated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SpecDetail"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid payload",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Generator could not produce a confident spec from this session",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/specs/{id}": {
+      "get": {
+        "tags": [
+          "specs"
+        ],
+        "summary": "Fetch one spec by id (with full primitives + source)",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "x-cuit-status": "planned-week-3",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SpecDetail"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/specs/{id}/run": {
+      "post": {
+        "tags": [
+          "runs"
+        ],
+        "summary": "Run a spec against a customer URL; returns RED or GREEN with step-level annotations",
+        "description": "The runner spins up a vitest-in-process worker (or headless Playwright per `browser`), executes the spec, and returns the structured outcome. On RED: the response includes `failed_at_primitive`, `last_snapshot`, and the preceding event window so an agent can reason about the failure without re-reading the spec source.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "x-cuit-status": "planned-week-4",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RunRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Run complete",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RunResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Spec not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "408": {
+            "description": "Run timed out",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/runs": {
+      "get": {
+        "tags": [
+          "runs"
+        ],
+        "summary": "List runs across all specs for this tenant",
+        "description": "Filterable by `spec_id`, `outcome`, `since`, `until`. Default: last 100 runs across the tenant.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "x-cuit-status": "planned-week-4",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": false,
+            "name": "spec_id",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "red",
+                "green",
+                "error"
+              ]
+            },
+            "required": false,
+            "name": "outcome",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "required": false,
+            "name": "since",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "required": false,
+            "name": "until",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": false,
+            "name": "limit",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "tenant": {
+                      "type": "string"
+                    },
+                    "runs": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/RunResult"
+                      }
+                    }
+                  },
+                  "required": [
+                    "tenant",
+                    "runs"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/sessions/{id}/similar": {
+      "get": {
+        "tags": [
+          "sessions"
+        ],
+        "summary": "Find sessions vector-similar to this one",
+        "description": "Backed by pgvector cosine similarity over per-session embeddings (voyage-3-lite). The MCP tool `cuit__find_similar_sessions` is a thin wrapper around this endpoint.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "x-cuit-status": "planned-week-5",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "example": "0.85"
+            },
+            "required": false,
+            "name": "threshold",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SimilarSessionsResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Reference session not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/insights/bug-class-distribution": {
+      "get": {
+        "tags": [
+          "insights"
+        ],
+        "summary": "Aggregate bug-class stats by component over a time window",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "x-cuit-status": "planned-week-5",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "description": "7d / 28d / 90d / 365d",
+              "example": "28d"
+            },
+            "required": false,
+            "name": "window",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BugClassDistributionResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/instrument/detect-shape": {
+      "post": {
+        "tags": [
+          "instrument"
+        ],
+        "summary": "Detect customer app shape (framework, state libs, selectors)",
+        "description": "Used by the `/cuit-instrument` skill via the `cuit__detect_app_shape` MCP tool. Returns the structured shape so the proposal step can target the right files.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "x-cuit-status": "planned-week-5",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "package_json": {
+                    "type": "object",
+                    "additionalProperties": {
+                      "nullable": true
+                    },
+                    "description": "Contents of the customer repo package.json"
+                  },
+                  "file_tree": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "description": "Flat list of source file paths."
+                  },
+                  "sample_files": {
+                    "type": "object",
+                    "additionalProperties": {
+                      "type": "string"
+                    },
+                    "description": "Optional map of path → content for AST hints."
+                  }
+                },
+                "required": [
+                  "package_json"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AppShapeResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/instrument/propose": {
+      "post": {
+        "tags": [
+          "instrument"
+        ],
+        "summary": "Given an app shape, propose the instrumentation diff",
+        "description": "Used by the `/cuit-instrument` skill via `cuit__propose_instrumentation`. The returned operations[] is consumed by Claude Code's Edit/Write tools to apply the diff.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "x-cuit-status": "planned-week-5",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "app_shape": {
+                    "$ref": "#/components/schemas/AppShapeResponse"
+                  },
+                  "overrides": {
+                    "type": "object",
+                    "additionalProperties": {
+                      "nullable": true
+                    }
+                  }
+                },
+                "required": [
+                  "app_shape"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InstrumentationProposal"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/audit": {
+      "get": {
+        "tags": [
+          "admin"
+        ],
+        "summary": "Stream audit log as CSV / JSON / NDJSON",
+        "description": "Compliance export. Returns a streaming response in the requested format. For large windows, prefer NDJSON for line-by-line consumption.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "x-cuit-status": "planned-week-7",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "date-time",
+              "example": "2026-06-01T00:00:00Z"
+            },
+            "required": true,
+            "name": "since",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "date-time",
+              "example": "2026-06-30T23:59:59Z"
+            },
+            "required": true,
+            "name": "until",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "csv",
+                "json",
+                "ndjson"
+              ],
+              "example": "csv"
+            },
+            "required": false,
+            "name": "format",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Streamed export",
+            "content": {
+              "text/csv": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": {
+                      "nullable": true
+                    }
+                  }
+                }
+              },
+              "application/x-ndjson": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/billing/usage": {
+      "get": {
+        "tags": [
+          "billing"
+        ],
+        "summary": "Current-period usage stats",
+        "description": "Returns sessions, specs, runs, inference tokens, and estimated cost for the current billing period.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "x-cuit-status": "planned-week-7",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BillingUsageResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/billing/subscription": {
+      "get": {
+        "tags": [
+          "billing"
+        ],
+        "summary": "Stripe subscription details for the current tenant",
+        "description": "Returns subscription status + a link to the Stripe customer portal for self-service.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "x-cuit-status": "planned-week-7",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SubscriptionResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/admin/tenant": {
+      "delete": {
+        "tags": [
+          "admin"
+        ],
+        "summary": "Purge all tenant data (GDPR right-to-delete)",
+        "description": "Hard-deletes sessions, specs, runs, signals, audit log for the authenticated tenant. Asynchronous: completes within 30 days. Returns a purge job id.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "x-cuit-status": "planned-week-8",
+        "responses": {
+          "202": {
+            "description": "Purge job accepted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "purge_job_id": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "eta_at": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "purge_job_id",
+                    "eta_at"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid token",
             "content": {
               "application/json": {
                 "schema": {
