@@ -1,0 +1,52 @@
+# Marketing site auto-deploy to Vercel on push to main.
+#
+# Why: the Vercel GitHub integration webhook silently stopped firing on
+# 2026-06-05 — pushes to main weren't deploying for 4 days. This action
+# is belt-and-suspenders: even if the webhook is broken, this still ships.
+#
+# Required repo secrets (set in GitHub → Settings → Secrets and variables → Actions):
+#   VERCEL_TOKEN         — personal access token from vercel.com/account/tokens
+#   VERCEL_ORG_ID        — clickdragfinance (run `vercel link` locally to get the
+#                          .vercel/project.json values, copy from there)
+#   VERCEL_PROJECT_ID    — same source, projectId field
+name: marketing-site deploy
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'marketing-site/**'
+      - '.github/workflows/marketing-site-deploy.yml'
+  workflow_dispatch: {}
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: marketing-site
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Install Vercel CLI
+        run: npm install --global vercel@latest
+
+      - name: Pull Vercel env
+        run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
+        env:
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+
+      - name: Build
+        run: vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
+
+      - name: Deploy production
+        run: vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }}
