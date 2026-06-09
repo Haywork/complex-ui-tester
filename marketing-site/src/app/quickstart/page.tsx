@@ -87,13 +87,12 @@ export default function QuickstartPage() {
           <ul className="text-sm text-[var(--text-secondary)] space-y-2 leading-relaxed">
             <li>
               <strong className="text-[var(--text-primary)]">A tenant bearer token.</strong>{" "}
-              If you&apos;re on the SpeechLab QA team, ask Ryan in #cuit-pilot — he&apos;ll DM
-              you the existing <code className="font-mono text-xs">speechlab</code> tenant token.
-              For other teams, email{" "}
-              <a href="mailto:ryan@speechlab.ai" className="underline">
-                ryan@speechlab.ai
-              </a>{" "}
-              to get a fresh tenant provisioned (~5 min turnaround).
+              Get one in 10 seconds at{" "}
+              <Link href="/signup" className="underline text-[var(--text-secondary)] hover:text-[var(--text-primary)]">
+                /signup
+              </Link>
+              {" "}— self-service, no human in the loop. Email + company name → token.
+              Rate-limited to 3 signups per IP per hour.
             </li>
             <li>
               <strong className="text-[var(--text-primary)]">A terminal with{" "}

@@ -58,6 +58,10 @@
     {
       "name": "billing",
       "description": "Usage stats and Stripe subscription details"
+    },
+    {
+      "name": "public",
+      "description": "Unauthenticated endpoints — no bearer token required"
     }
   ],
   "components": {
@@ -1074,6 +1078,148 @@
       "StripeWebhookBody": {
         "type": "object",
         "properties": {}
+      },
+      "PublicSignupTenant": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "slug": {
+            "type": "string"
+          },
+          "display_name": {
+            "type": "string"
+          },
+          "tier": {
+            "type": "string",
+            "enum": [
+              "team"
+            ]
+          },
+          "created_at": {
+            "type": "string"
+          },
+          "settings": {
+            "type": "object",
+            "properties": {
+              "pii_redaction": {
+                "type": "boolean"
+              },
+              "retention_days": {
+                "type": "integer"
+              }
+            },
+            "required": [
+              "pii_redaction",
+              "retention_days"
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "slug",
+          "display_name",
+          "tier",
+          "created_at",
+          "settings"
+        ]
+      },
+      "PublicSignupToken": {
+        "type": "object",
+        "properties": {
+          "token": {
+            "type": "string",
+            "description": "Plaintext bearer token. Shown ONCE; store it now.",
+            "example": "cuit_tk_a1b2c3d4e5f6..."
+          },
+          "token_prefix": {
+            "type": "string",
+            "example": "cuit_tk_a1b2"
+          },
+          "label": {
+            "type": "string",
+            "enum": [
+              "self-signup"
+            ]
+          },
+          "created_at": {
+            "type": "string"
+          },
+          "expires_at": {
+            "nullable": true
+          }
+        },
+        "required": [
+          "token",
+          "token_prefix",
+          "label",
+          "created_at",
+          "expires_at"
+        ]
+      },
+      "PublicSignupResponse": {
+        "type": "object",
+        "properties": {
+          "tenant": {
+            "$ref": "#/components/schemas/PublicSignupTenant"
+          },
+          "initial_token": {
+            "$ref": "#/components/schemas/PublicSignupToken"
+          },
+          "getting_started_url": {
+            "type": "string",
+            "format": "uri"
+          }
+        },
+        "required": [
+          "tenant",
+          "initial_token",
+          "getting_started_url"
+        ]
+      },
+      "RateLimitError": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "string"
+          },
+          "retry_after_seconds": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "error",
+          "retry_after_seconds"
+        ]
+      },
+      "PublicSignupRequest": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email",
+            "example": "dev@acme.com"
+          },
+          "company_name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 256,
+            "example": "Acme Corp"
+          },
+          "requested_slug": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9-]{1,62}$",
+            "description": "Lowercase slug for your tenant. Must start with a letter.",
+            "example": "acme-corp"
+          }
+        },
+        "required": [
+          "email",
+          "company_name",
+          "requested_slug"
+        ]
       }
     },
     "parameters": {}
@@ -2379,6 +2525,67 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/public/signup": {
+      "post": {
+        "tags": [
+          "public"
+        ],
+        "summary": "Self-serve tenant signup",
+        "description": "No authentication required. Creates a tenant (tier=team) and returns an initial bearer token in a single round-trip. Rate-limited to 3 signups per IP per rolling hour. The token is shown ONCE in the response — store it securely. PII (email, IP) is stored server-side for compliance and is never echoed back.",
+        "x-cuit-status": "live",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PublicSignupRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Tenant created. Contains the tenant object and a one-time-visible bearer token.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PublicSignupResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid payload (missing fields, bad slug format, etc.)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Requested slug (and up to 9 auto-suffixed variants) are all taken",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit exceeded — more than 3 signups from this IP in the past hour",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RateLimitError"
                 }
               }
             }

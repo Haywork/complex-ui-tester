@@ -13,12 +13,11 @@ interface NavItem {
 
 const NAV_ITEMS: NavItem[] = [
   { label: "Product", href: "/#how-it-works" },
+  { label: "Sign up", href: "/signup" },
   { label: "Quickstart", href: "/quickstart" },
-  { label: "Demo", href: "/#demo" },
-  { label: "Proof", href: "/proof" },
+  { label: "Example", href: "/examples/speechlab-waveform" },
   { label: "Pricing", href: "/pricing" },
   { label: "Docs", href: "/docs" },
-  { label: "Security", href: "/security" },
 ];
 
 interface HeaderProps {
