@@ -1,9 +1,21 @@
 import type {
+  ConsoleEvent,
+  ConsoleLevel,
+  ErrorEvent,
   NavEvent,
   PointerEvent as CuitPointerEvent,
   SessionEvent,
   StateSnapshotEvent,
 } from '@cuit/types';
+
+// ─── Console capture constants ────────────────────────────────────────────────
+
+/** Maximum number of serialised args stored per ConsoleEvent before an overflow marker. */
+const MAX_ARGS = 10;
+/** Maximum character length of a single serialised arg before truncation with '…'. */
+const MAX_ARG_LEN = 2000;
+/** All console levels the recorder wraps. */
+const CONSOLE_LEVELS: readonly ConsoleLevel[] = ['log', 'info', 'warn', 'error', 'debug'];
 
 export type RecorderOptions = {
   sessionId: string;
@@ -16,6 +28,22 @@ export type RecorderOptions = {
   document?: Document;
   /** Selectors whose targets should be captured as `targetName`. */
   semanticSelectors?: string[];
+  /**
+   * Capture `console.log/info/warn/error/debug` calls during the session as
+   * `ConsoleEvent` entries. Each call is also forwarded to the original method.
+   * Default `true`.
+   */
+  captureConsole?: boolean;
+  /**
+   * Capture `window` `error` and `unhandledrejection` events during the session
+   * as `ErrorEvent` entries (type:'error-event'). Default `true`.
+   */
+  captureErrors?: boolean;
+  /**
+   * Optional hook applied to every console arg before serialisation.  Use it
+   * to strip secrets (e.g. API keys) from the trace.
+   */
+  redactConsoleArg?: (arg: unknown) => unknown;
 };
 
 export type RecordedSession = {
@@ -92,11 +120,16 @@ export class Recorder {
   private readonly now: () => number;
   private readonly doc: Document;
   private readonly selectors: string[];
+  private readonly captureConsoleOpt: boolean;
+  private readonly captureErrorsOpt: boolean;
+  private readonly redactConsoleArg: ((arg: unknown) => unknown) | undefined;
   private readonly events: SessionEvent[] = [];
   private seq = 0;
   private startedAt: number | null = null;
   private listeners: Array<() => void> = [];
   private lastSnapshotKey: string | null = null;
+  /** Re-entrancy guard: prevents recursive console calls from infinite-looping. */
+  private consoleCapturing = false;
 
   constructor(options: RecorderOptions) {
     this.sessionId = options.sessionId;
@@ -111,6 +144,9 @@ export class Recorder {
       throw new Error('Recorder: no document available; pass options.document');
     }
     this.selectors = options.semanticSelectors ?? DEFAULT_SELECTORS;
+    this.captureConsoleOpt = options.captureConsole ?? true;
+    this.captureErrorsOpt = options.captureErrors ?? true;
+    this.redactConsoleArg = options.redactConsoleArg;
   }
 
   start(): void {
@@ -164,6 +200,10 @@ export class Recorder {
       this.doc.addEventListener(t, handler, true);
       this.listeners.push(() => this.doc.removeEventListener(t, handler, true));
     }
+
+    // Install console and error capture AFTER pointer listeners so the LIFO
+    // teardown order in stop() restores console before removing DOM listeners.
+    this.installConsoleCapture();
   }
 
   stop(): void {
@@ -220,6 +260,212 @@ export class Recorder {
   size(): number {
     return this.events.length;
   }
+
+  // ─── Console / error capture ───────────────────────────────────────────────
+
+  /**
+   * Safely convert a single console argument to a string suitable for storage.
+   * - Primitives are String()-coerced.
+   * - Objects / functions are JSON.stringify'd; circular/non-serialisable values
+   *   fall back to String(v).
+   * - The result is capped at MAX_ARG_LEN with a '…' suffix.
+   * Never throws.
+   */
+  private safeStringifyArg(v: unknown): string {
+    let s: string;
+    if (v === null) {
+      s = 'null';
+    } else if (typeof v === 'undefined') {
+      s = 'undefined';
+    } else if (typeof v === 'symbol') {
+      s = v.toString();
+    } else if (typeof v === 'object' || typeof v === 'function') {
+      try {
+        s = JSON.stringify(v) ?? String(v);
+      } catch {
+        s = String(v);
+      }
+    } else {
+      s = String(v);
+    }
+    if (s.length > MAX_ARG_LEN) {
+      return s.slice(0, MAX_ARG_LEN - 1) + '…';
+    }
+    return s;
+  }
+
+  /**
+   * Serialise and cap a raw arguments array.
+   * - Applies `redactConsoleArg` if provided.
+   * - Caps to MAX_ARGS; appends an overflow marker for extras.
+   * - Returns string[] so args are always JSON-serialisable.
+   */
+  private serialiseArgs(rawArgs: unknown[]): string[] {
+    const overflow = rawArgs.length > MAX_ARGS ? rawArgs.length - MAX_ARGS : 0;
+    const slice = rawArgs.slice(0, MAX_ARGS);
+    const redact = this.redactConsoleArg;
+    const serialised = slice.map((a) => {
+      const v = redact ? redact(a) : a;
+      return this.safeStringifyArg(v);
+    });
+    if (overflow > 0) {
+      serialised.push(`+${overflow} more`);
+    }
+    return serialised;
+  }
+
+  /**
+   * Wraps each console level and registers a teardown in `this.listeners`.
+   * Also installs window 'error' and 'unhandledrejection' handlers when
+   * `captureErrors` is true.
+   *
+   * Must be called inside `start()` after `startedAt` is set.
+   */
+  private installConsoleCapture(): void {
+    // Resolve the console object via the document's window so tests using a
+    // custom document / window (jsdom) work correctly.
+    const win: (Window & typeof globalThis) | null =
+      (this.doc.defaultView as (Window & typeof globalThis) | null) ?? null;
+    const cons: Console = win?.console ?? globalThis.console;
+
+    if (this.captureConsoleOpt) {
+      for (const level of CONSOLE_LEVELS) {
+        // Save the UNBOUND original so stop() restores the exact same reference
+        // the caller held before start().  We bind only for the call-through so
+        // `this` is correct inside the native console method.
+        const originalUnbound = cons[level] as (...args: unknown[]) => void;
+        const originalBound = originalUnbound.bind(cons) as (...args: unknown[]) => void;
+
+        const wrapper = (...args: unknown[]): void => {
+          // Always call through first so the original output is not suppressed.
+          originalBound(...args);
+
+          // Re-entrancy guard: if we are already inside the capture path (e.g.
+          // redactConsoleArg or safeStringifyArg calls console.log), skip the
+          // event push to prevent infinite recursion.
+          if (this.consoleCapturing) return;
+          this.consoleCapturing = true;
+          try {
+            const serialisedArgs = this.serialiseArgs(args);
+            // message is the space-joined representation excluding overflow markers.
+            const overflowRe = /^\+\d+ more$/;
+            const message = serialisedArgs.filter((a) => !overflowRe.test(a)).join(' ');
+            const ev: ConsoleEvent = {
+              seq: this.nextSeq(),
+              vendor: this.vendor,
+              vendorEventId: `${this.sessionId}-con-${this.seq}`,
+              ts: this.relativeTs(),
+              wallClock: this.now(),
+              type: 'console',
+              level,
+              message,
+              args: serialisedArgs,
+            };
+            this.events.push(ev);
+          } finally {
+            this.consoleCapturing = false;
+          }
+        };
+
+        // Replace the console method with our wrapper.
+        (cons as unknown as Record<string, unknown>)[level] = wrapper;
+
+        // Register restore teardown — puts back the UNBOUND original so the
+        // caller's saved reference (e.g. `const savedLog = console.log`) matches.
+        this.listeners.push(() => {
+          (cons as unknown as Record<string, unknown>)[level] = originalUnbound;
+        });
+      }
+    }
+
+    if (this.captureErrorsOpt && win) {
+      // window 'error' → ErrorEvent (source:'window.error')
+      const onWindowError = (ev: Event): void => {
+        const message = (ev as { message?: string }).message ?? String(ev);
+        const err = (ev as { error?: unknown }).error;
+        const stack =
+          err instanceof Error && typeof err.stack === 'string'
+            ? err.stack
+            : undefined;
+
+        const errorEvt: ErrorEvent = {
+          seq: this.nextSeq(),
+          vendor: this.vendor,
+          vendorEventId: `${this.sessionId}-err-${this.seq}`,
+          ts: this.relativeTs(),
+          wallClock: this.now(),
+          type: 'error-event',
+          message,
+          ...(stack !== undefined ? { stack } : {}),
+          source: 'window.error',
+        };
+        this.events.push(errorEvt);
+
+        // Also push a ConsoleEvent so bridge consumers that filter by
+        // type:'console' / level:'error' see the window error.
+        const consoleEv: ConsoleEvent = {
+          seq: this.nextSeq(),
+          vendor: this.vendor,
+          vendorEventId: `${this.sessionId}-con-${this.seq}`,
+          ts: this.relativeTs(),
+          wallClock: this.now(),
+          type: 'console',
+          level: 'error',
+          message,
+          args: [message],
+        };
+        this.events.push(consoleEv);
+      };
+
+      win.addEventListener('error', onWindowError);
+      this.listeners.push(() => win.removeEventListener('error', onWindowError));
+
+      // window 'unhandledrejection' → ErrorEvent (source:'unhandledrejection')
+      // + ConsoleEvent for bridge consumers.
+      const onUnhandledRejection = (ev: Event): void => {
+        const reason = (ev as { reason?: unknown }).reason;
+        let message: string;
+        let stack: string | undefined;
+        if (reason instanceof Error) {
+          message = reason.message;
+          stack = reason.stack;
+        } else {
+          message = String(reason ?? 'unhandled rejection');
+        }
+
+        const errorEvt: ErrorEvent = {
+          seq: this.nextSeq(),
+          vendor: this.vendor,
+          vendorEventId: `${this.sessionId}-rej-${this.seq}`,
+          ts: this.relativeTs(),
+          wallClock: this.now(),
+          type: 'error-event',
+          message,
+          ...(stack !== undefined ? { stack } : {}),
+          source: 'unhandledrejection',
+        };
+        this.events.push(errorEvt);
+
+        const consoleEv: ConsoleEvent = {
+          seq: this.nextSeq(),
+          vendor: this.vendor,
+          vendorEventId: `${this.sessionId}-con-${this.seq}`,
+          ts: this.relativeTs(),
+          wallClock: this.now(),
+          type: 'console',
+          level: 'error',
+          message,
+          args: [message],
+        };
+        this.events.push(consoleEv);
+      };
+
+      win.addEventListener('unhandledrejection', onUnhandledRejection);
+      this.listeners.push(() => win.removeEventListener('unhandledrejection', onUnhandledRejection));
+    }
+  }
+
+  // ─── Sequence / timing helpers ─────────────────────────────────────────────
 
   private nextSeq(): number {
     const s = this.seq;

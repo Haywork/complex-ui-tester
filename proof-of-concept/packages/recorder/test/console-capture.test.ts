@@ -11,7 +11,7 @@
  *   MAX_ARG_LEN  = 2000 — max characters per serialized arg before truncation
  */
 
-import { afterEach, beforeEach, describe, expect, test } from 'vitest';
+import { afterEach, describe, expect, test } from 'vitest';
 import { Recorder } from '../src/index';
 import type { ConsoleEvent, ErrorEvent } from '@cuit/types';
 
@@ -156,14 +156,21 @@ describe('Recorder (console + error capture)', () => {
       const err = new Error('boom');
       err.stack = 'Error: boom\n  at <anonymous>:1:1';
 
-      // jsdom supports dispatchEvent on window for ErrorEvent
+      // Add a cancelation listener BEFORE the recorder's listener so the event
+      // is cancelled before propagating further — this suppresses the vitest
+      // uncaught-exception handler from re-throwing the error.
+      const cancelHandler = (e: Event): void => { e.preventDefault(); };
+      window.addEventListener('error', cancelHandler, { capture: true });
+
       const ev = new ErrorEvent('error', {
         message: 'boom',
         error: err,
         bubbles: false,
-        cancelable: false,
+        cancelable: true,
       });
       window.dispatchEvent(ev);
+
+      window.removeEventListener('error', cancelHandler, true);
 
       rec.stop();
 
@@ -184,8 +191,13 @@ describe('Recorder (console + error capture)', () => {
       rec.start();
 
       const reason = new Error('rejected');
+      // Attach a no-op catch so the internal Promise does not become an unhandled
+      // rejection itself (the PromiseRejectionEvent constructor creates a real
+      // Promise, which Node/jsdom would otherwise re-emit as a secondary error).
+      const silentPromise = Promise.reject(reason);
+      silentPromise.catch(() => { /* intentionally silenced */ });
       const ev = new PromiseRejectionEvent('unhandledrejection', {
-        promise: Promise.reject(reason),
+        promise: silentPromise,
         reason,
         cancelable: true,
         bubbles: false,

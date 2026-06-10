@@ -62,10 +62,11 @@ export function generateSpec(events: SessionEvent[]): GeneratedSpec {
   // interaction and is captured as a regression signal.
   const interactionStart = pointerDown.ts;
   const interactionEnd = lastPointer.ts;
-  const hasStraddlingError = events.some(
+  const straddlingErrors = events.filter(
     (e) =>
       isErrorSignal(e) && e.ts >= interactionStart && e.ts <= interactionEnd,
   );
+  const straddlingErrorCount = straddlingErrors.length;
 
   const primitives: Primitive[] = [
     { kind: 'goto', url },
@@ -78,9 +79,10 @@ export function generateSpec(events: SessionEvent[]): GeneratedSpec {
 
   // A console error during a UI action is itself a regression, even when the
   // resulting state looks correct — so guard the interaction with an explicit
-  // no-console-errors assertion.
-  if (hasStraddlingError) {
-    primitives.push({ kind: 'assertNoConsoleErrors' });
+  // no-console-errors assertion. The count is included as diagnostic metadata
+  // so spec failures can report how many errors were detected.
+  if (straddlingErrorCount > 0) {
+    primitives.push({ kind: 'assertNoConsoleErrors', count: straddlingErrorCount });
   }
 
   return {
@@ -124,7 +126,7 @@ export function serializeSpec(spec: GeneratedSpec): string {
     '  getStateSnapshot,',
     '  setClock,',
     ...(guardsConsole
-      ? ['  assertNoConsoleErrors,', '  captureConsoleErrors,']
+      ? ['  assertNoConsoleErrors,', '  captureConsoleErrors,', '  restoreConsoleErrors,']
       : []),
   ];
 
@@ -143,7 +145,7 @@ export function serializeSpec(spec: GeneratedSpec): string {
     '',
     '    const snapshot = getStateSnapshot();',
     `    expect(snapshot[${literal(assertPrim.path)}]).toEqual(${literal(assertPrim.value)});`,
-    ...(guardsConsole ? ['', '    assertNoConsoleErrors();'] : []),
+    ...(guardsConsole ? ['', '    assertNoConsoleErrors();', '    restoreConsoleErrors();'] : []),
     '  });',
     '});',
     '',

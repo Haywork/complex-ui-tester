@@ -94,6 +94,16 @@ export interface TranslateUiReactBridgeOptions {
   onUpload?: (uploaded: { events: number; serverId: string }) => void;
   /** Callback when a POST fails. */
   onError?: (err: Error) => void;
+  /**
+   * Capture console.* calls as ConsoleEvent entries. Forwarded to the
+   * underlying Recorder. Default `true`.
+   */
+  captureConsole?: boolean;
+  /**
+   * Capture window 'error' and 'unhandledrejection' events as ErrorEvent
+   * entries. Forwarded to the underlying Recorder. Default `true`.
+   */
+  captureErrors?: boolean;
 }
 
 // ─── Public mount function ───────────────────────────────────────────────────
@@ -145,6 +155,8 @@ export function mountTranslateUiReactBridge(
       'data-cuit-id',
       'data-cy',
     ],
+    captureConsole: options.captureConsole ?? true,
+    captureErrors: options.captureErrors ?? true,
   });
 
   recorder.start();

@@ -229,7 +229,6 @@ describe('mountTranslateUiReactBridge — console capture', () => {
       tenantToken: 'dev-token-speechlab',
       sessionId: 'con-tc4b',
       pollMs: 10_000,
-      // @ts-expect-error — captureConsole option does not yet exist on the type
       captureConsole: false,
     });
 

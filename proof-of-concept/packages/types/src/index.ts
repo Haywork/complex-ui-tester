@@ -118,7 +118,7 @@ export type Primitive =
   | { kind: 'getStateSnapshot' }
   | { kind: 'dispatchDrag'; targetName: string; dx: number; dy: number }
   | { kind: 'assertStateEquals'; path: string; value: unknown }
-  | { kind: 'assertNoConsoleErrors' };
+  | { kind: 'assertNoConsoleErrors'; count: number };
 
 export type GeneratedSpec = {
   testName: string;

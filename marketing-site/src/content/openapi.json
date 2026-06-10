@@ -1220,6 +1220,164 @@
           "company_name",
           "requested_slug"
         ]
+      },
+      "LoopTrace": {
+        "type": "object",
+        "nullable": true,
+        "properties": {
+          "turns_to_green": {
+            "type": "integer"
+          },
+          "tool_calls": {
+            "type": "integer"
+          },
+          "tokens": {
+            "type": "integer"
+          },
+          "wall_ms": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "turns_to_green",
+          "tool_calls",
+          "tokens",
+          "wall_ms"
+        ]
+      },
+      "LoopCloseResponse": {
+        "type": "object",
+        "properties": {
+          "outcome": {
+            "type": "string",
+            "enum": [
+              "green",
+              "red",
+              "error"
+            ]
+          },
+          "summary": {
+            "type": "string"
+          },
+          "next_actions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "details_ref": {
+            "type": "string",
+            "nullable": true
+          },
+          "data": {
+            "type": "object",
+            "nullable": true,
+            "properties": {
+              "session_id": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "spec_id": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "run_id": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "confidence": {
+                "type": "number"
+              },
+              "steps_count": {
+                "type": "integer"
+              }
+            },
+            "required": [
+              "session_id",
+              "spec_id",
+              "run_id",
+              "confidence",
+              "steps_count"
+            ]
+          },
+          "trace": {
+            "$ref": "#/components/schemas/LoopTrace"
+          }
+        },
+        "required": [
+          "outcome",
+          "summary",
+          "next_actions",
+          "details_ref",
+          "data",
+          "trace"
+        ]
+      },
+      "LoopCloseRequest": {
+        "type": "object",
+        "properties": {
+          "session_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "sessions.id UUID. Mutually exclusive with session."
+          },
+          "session": {
+            "type": "object",
+            "properties": {
+              "sessionId": {
+                "type": "string",
+                "minLength": 1
+              },
+              "vendor": {
+                "type": "string",
+                "enum": [
+                  "cuit",
+                  "jam",
+                  "logrocket",
+                  "sentry-replay",
+                  "fullstory",
+                  "datadog-rum"
+                ]
+              },
+              "url": {
+                "type": "string"
+              },
+              "events": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/SessionEvent"
+                },
+                "minItems": 1
+              },
+              "gitSha": {
+                "type": "string"
+              },
+              "gitBranch": {
+                "type": "string"
+              },
+              "capturedByUserId": {
+                "type": "string",
+                "format": "uuid"
+              }
+            },
+            "required": [
+              "sessionId",
+              "vendor",
+              "url",
+              "events"
+            ],
+            "description": "Inline session payload. Mutually exclusive with session_id."
+          },
+          "target_url": {
+            "type": "string",
+            "format": "uri",
+            "description": "URL the spec runner will navigate to.",
+            "example": "http://localhost:3000/projects/abc"
+          }
+        },
+        "required": [
+          "target_url"
+        ]
       }
     },
     "parameters": {}
@@ -2586,6 +2744,199 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/RateLimitError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/sessions/{id}/events": {
+      "get": {
+        "tags": [
+          "sessions"
+        ],
+        "summary": "Fetch the full events array for a single session",
+        "description": "Returns the JSONB events column for a session. This is the AX-compliant drill-down counterpart to GET /v1/sessions, which returns only compact id+summary rows to stay within token budget (ADR-011 Rule 2). Pass the returned events to cuit__close_loop to generate and run a regression spec.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "x-cuit-status": "live",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "AX ok envelope with full events array",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "outcome": {
+                      "type": "string",
+                      "enum": [
+                        "ok"
+                      ]
+                    },
+                    "summary": {
+                      "type": "string"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "events": {
+                          "type": "array",
+                          "items": {
+                            "$ref": "#/components/schemas/SessionEvent"
+                          }
+                        }
+                      },
+                      "required": [
+                        "events"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "outcome",
+                    "summary",
+                    "data"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Non-UUID id path param",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid bearer token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Session not found (AX error envelope)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "outcome": {
+                      "type": "string",
+                      "enum": [
+                        "error"
+                      ]
+                    },
+                    "error": {
+                      "type": "string"
+                    },
+                    "fix_hint": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "outcome",
+                    "error",
+                    "fix_hint"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/loop/close": {
+      "post": {
+        "tags": [
+          "runs"
+        ],
+        "summary": "One-shot loop close: generate spec → run spec → persist trace",
+        "description": "ADR-011 Rule 6 (one-shot composition) + Rule 7 (self-measuring). Runs generate→run→report in ONE call inside a single DB transaction (spec row + run row + loop_trace row + audit row). Returns the loop AX envelope with outcome green|red|error and a trace {turns_to_green, tool_calls, tokens, wall_ms}. Always returns HTTP 200 — the envelope carries the outcome. NOTE: not deduplicated in v0 (each call inserts a new spec row; non-destructive).",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "x-cuit-status": "live",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoopCloseRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Loop close complete. outcome green|red|error in envelope.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LoopCloseResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid payload",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid bearer token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Session not found (when session_id supplied)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LoopCloseResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "No spec could be generated from the session events",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LoopCloseResponse"
                 }
               }
             }
