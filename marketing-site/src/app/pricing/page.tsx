@@ -6,9 +6,23 @@ import { Badge } from "@/components/ui/Badge";
 import { PRICING_TIERS, PRICING_FEATURE_MATRIX } from "@/content/pricing";
 
 export const metadata: Metadata = {
-  title: "Pricing",
+  title: "Pricing — OSS Free to Enterprise UI Regression Testing",
   description:
-    "What you actually want to stop doing. What becomes possible. Four tiers, problem-led — OSS, Team ($499/mo), Business ($2,500/mo), Enterprise from $40k/year.",
+    "CUIT pricing: OSS (free), Team ($499/mo), Business ($2,500/mo), Enterprise from $40k/yr. Closed-loop UI verification for Claude Code agents at every scale.",
+  keywords: [
+    "CUIT pricing",
+    "claude code ui testing",
+    "mcp server ui regression",
+    "closed loop verification for agents",
+    "agentic ui test generation",
+    "UI feedback loop",
+    "regression testing pricing",
+  ],
+  openGraph: {
+    title: "Pricing — OSS Free to Enterprise UI Regression Testing | CUIT",
+    description:
+      "CUIT pricing: OSS (free), Team ($499/mo), Business ($2,500/mo), Enterprise from $40k/yr. Closed-loop UI verification for Claude Code agents at every scale.",
+  },
 };
 
 function FeatureCell({ value }: { value: string | boolean }) {

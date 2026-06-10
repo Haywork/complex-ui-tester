@@ -5,9 +5,24 @@ import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
 
 export const metadata: Metadata = {
-  title: "Security & Compliance",
+  title: "Security & Compliance — SOC 2, STRIDE, Tenant Isolation",
   description:
-    "STRIDE threat model, SOC 2 Type II in observation, customer-cloud runner option, tenant isolation, data classification. Request the full security packet.",
+    "CUIT security: STRIDE threat model, SOC 2 Type II in observation, RLS-based tenant isolation, zero customer data in model training. Request the security packet.",
+  keywords: [
+    "CUIT security",
+    "SOC 2 UI testing",
+    "claude code ui testing",
+    "closed loop verification for agents",
+    "mcp server ui regression",
+    "tenant isolation",
+    "agentic ui test generation",
+    "STRIDE",
+  ],
+  openGraph: {
+    title: "Security & Compliance — SOC 2, STRIDE, Tenant Isolation | CUIT",
+    description:
+      "CUIT security: STRIDE threat model, SOC 2 Type II in observation, RLS-based tenant isolation, zero customer data in model training. Request the security packet.",
+  },
 };
 
 const COMMITMENTS = [

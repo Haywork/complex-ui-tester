@@ -4,9 +4,23 @@ import { SiteShell } from "@/components/SiteShell";
 import { Badge } from "@/components/ui/Badge";
 
 export const metadata: Metadata = {
-  title: "Quickstart — Claude Code + MCP in 90 seconds",
+  title: "Quickstart — Claude Code + MCP UI Testing in 90s",
   description:
-    "Agentic-native onboarding. Add the CUIT MCP server to Claude Code, invoke /cuit-loop or /cuit-instrument, watch the agent close the loop. No curl required.",
+    "Add the CUIT MCP server to Claude Code, invoke /cuit-loop or /cuit-instrument, and watch the agent close the UI feedback loop. No curl required.",
+  keywords: [
+    "claude code ui testing",
+    "mcp server ui regression",
+    "closed loop verification for agents",
+    "agentic ui test generation",
+    "Claude Code MCP quickstart",
+    "UI feedback loop",
+    "CUIT quickstart",
+  ],
+  openGraph: {
+    title: "Quickstart — Claude Code + MCP UI Testing in 90 Seconds | CUIT",
+    description:
+      "Add the CUIT MCP server to Claude Code, invoke /cuit-loop or /cuit-instrument, and watch the agent close the UI feedback loop. No curl required.",
+  },
 };
 
 const API_URL = "https://cuit-saas-pilot.fly.dev";

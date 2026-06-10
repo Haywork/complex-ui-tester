@@ -9,9 +9,24 @@ import {
 } from "@/components/ApiReference";
 
 export const metadata: Metadata = {
-  title: "API reference",
+  title: "API Reference — Upload Session, Get Playwright Spec",
   description:
-    "The CUIT SaaS API. Upload a session, get a regression spec. Bearer-token auth, per-tenant warehouse, RLS-isolated. Generated from the OpenAPI 3.0 spec the API serves at /openapi.json.",
+    "CUIT REST API: POST a session, receive a Playwright regression spec. Bearer-token auth, RLS-isolated per-tenant warehouse. Full OpenAPI 3.0 reference.",
+  keywords: [
+    "CUIT API",
+    "claude code ui testing",
+    "mcp server ui regression",
+    "agentic ui test generation",
+    "closed loop verification for agents",
+    "Playwright spec generation",
+    "UI feedback loop",
+    "OpenAPI",
+  ],
+  openGraph: {
+    title: "API Reference — Upload Session, Get Playwright Spec | CUIT",
+    description:
+      "CUIT REST API: POST a session, receive a Playwright regression spec. Bearer-token auth, RLS-isolated per-tenant warehouse. Full OpenAPI 3.0 reference.",
+  },
 };
 
 export default function ApiDocsPage() {

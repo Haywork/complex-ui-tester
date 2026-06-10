@@ -1,4 +1,27 @@
+import type { Metadata } from "next";
 import { Suspense } from "react";
+
+export const metadata: Metadata = {
+  title: "Claude Code UI Testing — Closed-Loop Verification",
+  description:
+    "CUIT closes the UI feedback loop for Claude Code agents. Record a session, auto-generate a Playwright spec, lock it in CI. Stop fixing the same UI bug twice.",
+  keywords: [
+    "claude code ui testing",
+    "closed loop verification for agents",
+    "mcp server ui regression",
+    "agentic ui test generation",
+    "UI feedback loop",
+    "Claude Code",
+    "regression testing",
+    "Playwright",
+    "CUIT",
+  ],
+  openGraph: {
+    title: "Claude Code UI Testing — Closed-Loop Verification | CUIT",
+    description:
+      "CUIT closes the UI feedback loop for Claude Code agents. Record a session, auto-generate a Playwright spec, lock it in CI. Stop fixing the same UI bug twice.",
+  },
+};
 import { SiteShell } from "@/components/SiteShell";
 import { Hero } from "@/components/Hero";
 import { AgenticLoop } from "@/components/AgenticLoop";

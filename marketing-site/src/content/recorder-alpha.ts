@@ -34,7 +34,14 @@ export const EXAMPLE_CAPTURE = `{
       "targetName": "seg-0", "x": 140, "y": 32, "pointerId": 1 },
     { "seq": 12, "type": "pointer", "phase": "up",
       "targetName": "seg-0", "x": 140, "y": 32, "pointerId": 1 },
-    { "seq": 13, "type": "state-snapshot", "path": "segments[0].x",  "value": 25 }
+    { "seq": 13, "type": "state-snapshot", "path": "segments[0].x",  "value": 25 },
+    { "seq": 14, "type": "console", "level": "error",
+      "message": "Cannot read properties of undefined (reading 'x')",
+      "stack": "at onPointerMove (App.tsx:42:18)" },
+    { "seq": 15, "type": "console", "level": "warn",
+      "message": "Segment collision detected — clamping to boundary" },
+    { "seq": 16, "type": "uncaught-error",
+      "message": "ResizeObserver loop completed with undelivered notifications." }
   ]
 }`;
 
@@ -46,10 +53,12 @@ export const AGENT_INVOCATION = `# Claude Code · Codex · Cursor · Aider
 # The agent reads .claude/skills/cuit-loop/SKILL.md and walks the loop:
 #   1. validate the session shape
 #   2. generateSpec(events) -> spec.ts grounded in @cuit/harness
+#      includes: expect(consoleLogs.errors).toHaveLength(0)
 #   3. run the spec -> RED expected (bug reproduced)
 #   4. diagnose: actual segments[0].x = 25, expected 100
+#              + 1 console.error captured during drag
 #   5. propose minimum fix to onPointerMove collision check
-#   6. re-run -> GREEN
+#   6. re-run -> GREEN (interaction correct + zero console errors)
 #   7. open PR with the spec + the fix
 #
 # Total: ~30 seconds of agent time for a fix that took your engineer
@@ -57,12 +66,14 @@ export const AGENT_INVOCATION = `# Claude Code · Codex · Cursor · Aider
 
 export const AGENT_OUTPUT = `cuit-loop complete
 
-  session     demo-collision-001 (14 events)
-  spec        out/generated.spec.ts (6 primitives)
+  session     demo-collision-001 (17 events)
+  spec        out/generated.spec.ts (7 primitives)
   red-actual  segments[0].x = 25 (expected 100)
+              console.error: "Cannot read properties of undefined (reading 'x')"
   fix         remove over-eager collision check in onPointerMove
               (App.tsx, 4 lines deleted)
-  green       ✓ same spec passes after fix
+  green       ✓ interaction correct after fix
+              ✓ expect(consoleLogs.errors).toHaveLength(0) — PASS
   pr          https://github.com/your-org/your-app/pull/4218`;
 
 export const INSTALL_STEPS = [

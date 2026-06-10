@@ -6,9 +6,24 @@ import { Badge } from "@/components/ui/Badge";
 import { TRANSCRIPTS } from "@/content/claude-code-transcripts";
 
 export const metadata: Metadata = {
-  title: "Five Claude Code conversations — CUIT in real engineer workflows",
+  title: "Claude Code Workflows — 5 Real CUIT MCP Sessions",
   description:
-    "Real Claude Code transcripts using CUIT MCP tools. Segment-drag regression, fresh Next.js instrumentation, flake diagnosis, PR-gating, SOC 2 audit export. The loop is the product; this is how engineers feel it.",
+    "Real Claude Code transcripts using CUIT MCP tools: segment-drag regression, Next.js instrumentation, flake diagnosis, PR-gating, SOC 2 audit export.",
+  keywords: [
+    "claude code ui testing",
+    "mcp server ui regression",
+    "agentic ui test generation",
+    "closed loop verification for agents",
+    "UI feedback loop",
+    "Claude Code MCP workflows",
+    "CUIT examples",
+    "Playwright regression",
+  ],
+  openGraph: {
+    title: "Claude Code Workflows — 5 Real CUIT MCP Sessions | CUIT",
+    description:
+      "Real Claude Code transcripts using CUIT MCP tools: segment-drag regression, Next.js instrumentation, flake diagnosis, PR-gating, SOC 2 audit export.",
+  },
 };
 
 export default function ClaudeCodeWorkflowsPage() {

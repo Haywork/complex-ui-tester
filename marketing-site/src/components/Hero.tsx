@@ -4,9 +4,9 @@ import Link from "next/link";
 import { Button } from "@/components/ui/Button";
 
 const STAT_ROW = [
+  { value: "0.18s", label: "loop closed, end-to-end" },
   { value: "73 / 73", label: "package tests passing" },
   { value: "0%", label: "CI flake rate" },
-  { value: "0.18s", label: "loop closed, end-to-end" },
   { value: "Chrome ext", label: "first-party recorder shipping" },
 ];
 
@@ -53,29 +53,25 @@ export function Hero() {
             id="hero-headline"
             className="text-5xl sm:text-6xl md:text-7xl font-bold leading-[0.95] tracking-tight text-[var(--text-primary)] mb-6"
           >
-            Close the loop in{" "}
+            The UI feedback loop{" "}
             <br className="hidden sm:block" />
             {/* Dark mode: gradient from bright paper → mute-5. Light mode: solid text-primary. */}
-            <span
-              className="relative inline-block hero-gradient-text"
-            >
-              Claude Code.
+            <span className="relative inline-block hero-gradient-text">
+              Claude Code was missing.
             </span>
           </h1>
 
           {/* Subheadline */}
           <p className="text-lg md:text-xl text-[var(--text-secondary)] max-w-2xl leading-relaxed mb-10">
-            The feedback loop is the durable substrate — not the model, not
-            the recorder, not the test runner.{" "}
-            <strong className="text-[var(--text-primary)] font-semibold">
-              CUIT
-            </strong>{" "}
-            is a Claude Code MCP skill that captures what your agent ships,
-            generates a grounded Playwright spec from semantic events, and
-            locks it in as a CI gate — compressing days of manual QA into a
-            single conversation turn.{" "}
-            <span className="text-[var(--text-primary)]">
-              Your agent should verify what it ships.
+            Say{" "}
+            <code className="font-mono text-sm px-1.5 py-0.5 rounded bg-[var(--color-mute-1)] text-[var(--text-primary)]">
+              /cuit-loop
+            </code>{" "}
+            in Claude Code. CUIT captures every interaction and console log,
+            generates a grounded Playwright spec from semantic events, and locks
+            it in as a CI gate — all in one conversation turn.{" "}
+            <span className="text-[var(--text-primary)] font-medium">
+              Closed-loop verification, not just code generation.
             </span>
           </p>
 
@@ -98,7 +94,7 @@ export function Hero() {
                     strokeLinejoin="round"
                   />
                 </svg>
-                Get early access
+                Get your token — free
               </Button>
             </Link>
             <Link href="/examples/claude-code-workflows" className="inline-flex">
@@ -118,38 +114,15 @@ export function Hero() {
                     strokeLinejoin="round"
                   />
                 </svg>
-                See Claude Code workflows
+                See 5 real conversations
               </Button>
-            </Link>
-            <Link
-              href="https://github.com/speechlabinc/complex-ui-tester/blob/main/ARCHITECTURE.md"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 px-6 py-3 text-base font-medium text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors focus-visible:outline-2 focus-visible:outline-[var(--color-accent)] focus-visible:outline-offset-2 rounded-[var(--radius-md)]"
-            >
-              Read the architecture
-              <svg
-                width="14"
-                height="14"
-                viewBox="0 0 14 14"
-                fill="none"
-                aria-hidden="true"
-              >
-                <path
-                  d="M2.5 7h9M8 4l3.5 3L8 10"
-                  stroke="currentColor"
-                  strokeWidth="1.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
             </Link>
           </div>
 
-          {/* Stat row */}
+          {/* Stat row — 0.18s evidence pill leads */}
           <div
             className="flex flex-wrap gap-x-8 gap-y-4 pt-8 border-t border-[var(--border-color)]"
-            aria-label="Key metrics from Branch B"
+            aria-label="Key metrics"
           >
             {STAT_ROW.map((stat) => (
               <div key={stat.label} className="flex flex-col gap-0.5">

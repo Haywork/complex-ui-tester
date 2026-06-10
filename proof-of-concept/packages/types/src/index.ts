@@ -28,14 +28,97 @@ export type NavEvent = SessionEventBase & {
   url: string;
 };
 
-export type SessionEvent = PointerEvent | StateSnapshotEvent | NavEvent;
+export type ConsoleLevel = 'log' | 'info' | 'warn' | 'error' | 'debug';
+
+/** Runtime constant — all valid console levels, useful for iteration and guards. */
+export const CONSOLE_LEVELS: readonly ConsoleLevel[] = [
+  'log',
+  'info',
+  'warn',
+  'error',
+  'debug',
+] as const;
+
+/** Returns true when `v` is a valid `ConsoleLevel` string. Accepts `unknown`. */
+export const isConsoleLevel = (v: unknown): v is ConsoleLevel =>
+  typeof v === 'string' && (CONSOLE_LEVELS as readonly string[]).includes(v);
+
+/**
+ * Sanitise and cap a `console.*` arguments array so it is always
+ * JSON-safe and bounded in size.
+ *
+ * - Caps to `maxCount` entries (default 10).
+ * - Returns a **new** array — never mutates the input.
+ * - Replaces non-JSON-safe values (functions, undefined, Symbols, circular
+ *   objects) with a descriptive placeholder string so the result round-trips
+ *   through `JSON.stringify` without throwing.
+ */
+export function capArgs(args: unknown[], maxCount = 10): unknown[] {
+  const capped = args.slice(0, maxCount);
+  return capped.map((v) => sanitiseArg(v));
+}
+
+function sanitiseArg(v: unknown): unknown {
+  if (v === undefined) return '[undefined]';
+  if (typeof v === 'function') return `[Function: ${(v as { name?: string }).name ?? 'anonymous'}]`;
+  if (typeof v === 'symbol') return `[Symbol: ${v.toString()}]`;
+  if (v !== null && typeof v === 'object') {
+    try {
+      JSON.stringify(v);
+      return v;
+    } catch {
+      return '[Circular/Non-serializable]';
+    }
+  }
+  return v;
+}
+
+/**
+ * A captured `console.*` call. `args` is JSON-safe (non-serializable values are
+ * coerced to strings by the recorder) and capped to keep the trace bounded.
+ * `message` is the space-joined string representation of all args.
+ * `stack` is populated for `error`-level entries when one is available.
+ */
+export type ConsoleEvent = SessionEventBase & {
+  type: 'console';
+  level: ConsoleLevel;
+  /** Space-joined string representation of all serialised args. */
+  message: string;
+  args: unknown[];
+  stack?: string;
+};
+
+/**
+ * An uncaught error (`window.onerror`) or an unhandled promise rejection
+ * (`unhandledrejection`). `source` distinguishes the two origins.
+ */
+export type ErrorEvent = SessionEventBase & {
+  type: 'error-event';
+  message: string;
+  stack?: string;
+  source?: 'window.error' | 'unhandledrejection';
+};
+
+export type SessionEvent =
+  | PointerEvent
+  | StateSnapshotEvent
+  | NavEvent
+  | ConsoleEvent
+  | ErrorEvent;
+
+export const isConsoleEvent = (e: SessionEvent): e is ConsoleEvent =>
+  e.type === 'console';
+
+export const isErrorEvent = (e: SessionEvent): e is ErrorEvent =>
+  e.type === 'error-event';
 
 export type Primitive =
   | { kind: 'goto'; url: string }
   | { kind: 'setClock'; t: number }
   | { kind: 'getStateSnapshot' }
   | { kind: 'dispatchDrag'; targetName: string; dx: number; dy: number }
-  | { kind: 'assertStateEquals'; path: string; value: unknown };
+  | { kind: 'assertStateEquals'; path: string; value: unknown }
+  | { kind: 'assertNoConsoleErrors' };
 
 export type GeneratedSpec = {
   testName: string;

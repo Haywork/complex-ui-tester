@@ -4,9 +4,24 @@ import { SiteShell } from "@/components/SiteShell";
 import { Badge } from "@/components/ui/Badge";
 
 export const metadata: Metadata = {
-  title: "Example — SpeechLab waveform editor (reference instrumentation)",
+  title: "Example — SpeechLab Waveform Editor CUIT Instrumentation",
   description:
-    "Real-world example of CUIT instrumentation. SpeechLab's translate-ui-react editor: how the recorder bridge mounts, how state snapshots flow, what gets captured, what gets gated. The 80-line implementation you can fork.",
+    "Reference CUIT instrumentation on SpeechLab's waveform editor: recorder bridge, state snapshots, agentic UI test generation. The 80-line implementation to fork.",
+  keywords: [
+    "agentic ui test generation",
+    "claude code ui testing",
+    "mcp server ui regression",
+    "closed loop verification for agents",
+    "UI feedback loop",
+    "CUIT instrumentation",
+    "SpeechLab",
+    "waveform editor testing",
+  ],
+  openGraph: {
+    title: "Example — SpeechLab Waveform Editor CUIT Instrumentation | CUIT",
+    description:
+      "Reference CUIT instrumentation on SpeechLab's waveform editor: recorder bridge, state snapshots, agentic UI test generation. The 80-line implementation to fork.",
+  },
 };
 
 const REPO = "https://github.com/speechlabinc/complex-ui-tester";

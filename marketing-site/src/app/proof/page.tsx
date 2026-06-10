@@ -7,9 +7,24 @@ import { Badge } from '@/components/ui/Badge';
 import { PROOF_STATS } from '@/content/proof';
 
 export const metadata: Metadata = {
-  title: 'Proof — it actually runs',
+  title: 'Proof — Claude Code Closed-Loop Verification Running Live',
   description:
-    'The end-to-end loop running in a real repository. Generated spec, RED on bug, GREEN on fix, locked in as a CI gate. Clone and reproduce yourself.',
+    'See CUIT\'s closed-loop UI verification end-to-end: generated Playwright spec, RED on bug, GREEN on fix, locked into CI. Clone and reproduce yourself.',
+  keywords: [
+    'closed loop verification for agents',
+    'claude code ui testing',
+    'agentic ui test generation',
+    'mcp server ui regression',
+    'UI feedback loop',
+    'regression testing proof',
+    'Playwright CI gate',
+    'CUIT proof',
+  ],
+  openGraph: {
+    title: 'Proof — Claude Code Closed-Loop Verification Running Live | CUIT',
+    description:
+      'See CUIT\'s closed-loop UI verification end-to-end: generated Playwright spec, RED on bug, GREEN on fix, locked into CI. Clone and reproduce yourself.',
+  },
 };
 
 export default function ProofPage() {

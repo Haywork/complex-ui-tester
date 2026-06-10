@@ -5,9 +5,24 @@ import { Badge } from "@/components/ui/Badge";
 import { DOCS, TOP_LEVEL_DOCS } from "@/content/docs-index";
 
 export const metadata: Metadata = {
-  title: "Documentation",
+  title: "Docs — CUIT Architecture & Design Documents",
   description:
-    "Architecture, security, operations, GTM, adapter specs. 10 numbered design documents plus top-level repo guides.",
+    "10 numbered design docs covering CUIT architecture, security, MCP server integration, adapter specs, and closed-loop UI verification for Claude Code agents.",
+  keywords: [
+    "CUIT documentation",
+    "claude code ui testing",
+    "mcp server ui regression",
+    "closed loop verification for agents",
+    "UI feedback loop",
+    "agentic ui test generation",
+    "architecture",
+    "design documents",
+  ],
+  openGraph: {
+    title: "Docs — CUIT Architecture & Design Documents | CUIT",
+    description:
+      "10 numbered design docs covering CUIT architecture, security, MCP server integration, adapter specs, and closed-loop UI verification for Claude Code agents.",
+  },
 };
 
 export default function DocsPage() {

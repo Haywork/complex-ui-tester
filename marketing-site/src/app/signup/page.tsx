@@ -3,9 +3,23 @@ import { SiteShell } from "@/components/SiteShell";
 import { SignupForm } from "@/components/SignupForm";
 
 export const metadata: Metadata = {
-  title: "Sign up — get a tenant token in 10 seconds",
+  title: "Sign Up — Get Your CUIT Token in 10 Seconds",
   description:
-    "Self-service CUIT tenant provisioning. Email + company name → bearer token, shown once, ready to use against the live API. No human in the loop.",
+    "Self-service CUIT tenant provisioning for Claude Code UI testing. Email + company name gets you a bearer token instantly. No sales call, no credit card.",
+  keywords: [
+    "CUIT sign up",
+    "claude code ui testing",
+    "agentic ui test generation",
+    "mcp server ui regression",
+    "UI feedback loop",
+    "closed loop verification for agents",
+    "free tier",
+  ],
+  openGraph: {
+    title: "Sign Up — Get Your CUIT Token in 10 Seconds | CUIT",
+    description:
+      "Self-service CUIT tenant provisioning for Claude Code UI testing. Email + company name gets you a bearer token instantly. No sales call, no credit card.",
+  },
 };
 
 export default function SignupPage() {

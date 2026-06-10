@@ -45,16 +45,29 @@ export function RecorderAlpha() {
           </h2>
           <p className="text-[var(--text-secondary)] leading-relaxed">
             10 KB. Chrome MV3. No account, no signup, no telemetry. Captures
-            pointer events with semantic selectors and{" "}
+            pointer events with semantic selectors,{" "}
             <code className="font-mono text-[var(--color-accent)] bg-[var(--bg-secondary)] px-1.5 py-0.5 rounded border border-[var(--border-color)]">
               window.__cuitDebug
             </code>{" "}
-            state snapshots into one JSON blob. Drop the JSON into Claude
-            Code / Codex / Cursor and the bundled{" "}
+            state snapshots, and every{" "}
+            <code className="font-mono text-[var(--color-accent)] bg-[var(--bg-secondary)] px-1.5 py-0.5 rounded border border-[var(--border-color)]">
+              console.log
+            </code>
+            {" "}/{" "}
+            <code className="font-mono text-[var(--color-accent)] bg-[var(--bg-secondary)] px-1.5 py-0.5 rounded border border-[var(--border-color)]">
+              warn
+            </code>
+            {" "}/{" "}
+            <code className="font-mono text-[var(--color-accent)] bg-[var(--bg-secondary)] px-1.5 py-0.5 rounded border border-[var(--border-color)]">
+              error
+            </code>{" "}
+            and uncaught exception that fires during the session — all in one
+            JSON blob. Drop the blob into Claude Code and the bundled{" "}
             <code className="font-mono text-[var(--color-accent)]">
               /cuit-loop
             </code>{" "}
-            skill closes the loop for you.
+            skill closes the loop: spec generated, spec run, console-error
+            assertion included.
           </p>
         </div>
 
@@ -159,15 +172,23 @@ export function RecorderAlpha() {
               language="json"
             />
             <p className="mt-3 text-xs text-[var(--text-tertiary)] leading-relaxed">
-              Three event types — <code className="font-mono">nav</code> for the page URL,{" "}
+              Five event types in one blob:{" "}
+              <code className="font-mono">nav</code> for the page URL,{" "}
               <code className="font-mono">pointer</code> for interactions
-              (with the semantic <code className="font-mono">targetName</code>{" "}
-              resolved from <code className="font-mono">data-segment-id</code>{" "}
-              / <code className="font-mono">data-testid</code> / <code className="font-mono">data-cuit-id</code>),{" "}
-              and <code className="font-mono">state-snapshot</code> for the
-              before/after of <code className="font-mono">__cuitDebug.getState()</code>.{" "}
-              That&apos;s everything <code className="font-mono">@cuit/spec-gen</code>{" "}
-              needs.
+              (semantic <code className="font-mono">targetName</code> resolved
+              from <code className="font-mono">data-testid</code> /{" "}
+              <code className="font-mono">data-cuit-id</code>),{" "}
+              <code className="font-mono">state-snapshot</code> for the
+              before/after of{" "}
+              <code className="font-mono">__cuitDebug.getState()</code>,{" "}
+              <code className="font-mono">console</code> for every{" "}
+              <code className="font-mono">log</code> /{" "}
+              <code className="font-mono">warn</code> /{" "}
+              <code className="font-mono">error</code> with stack trace, and{" "}
+              <code className="font-mono">uncaught-error</code> for unhandled
+              exceptions. The generated spec asserts{" "}
+              <code className="font-mono">expect(consoleLogs.errors).toHaveLength(0)</code>{" "}
+              automatically — zero-error CI gate included.
             </p>
           </div>
           <div>
@@ -196,6 +217,82 @@ export function RecorderAlpha() {
               <code className="font-mono">.codexrules</code> /{" "}
               <code className="font-mono">.cursorrules</code>.
             </p>
+          </div>
+        </div>
+
+        {/* Competitive callout — console capture as differentiator */}
+        <div className="mt-8 rounded-[var(--radius-lg)] border border-[var(--color-accent)]/30 bg-[var(--color-accent)]/[0.04] p-6 md:p-7">
+          <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4 md:gap-10">
+            <div className="flex-1 min-w-0">
+              <p className="font-mono text-[10px] uppercase tracking-widest text-[var(--color-accent)] mb-3">
+                We capture what Jam captures — and more
+              </p>
+              <p className="text-[var(--text-primary)] font-semibold text-base md:text-lg leading-snug mb-2">
+                Clicks, network, and console errors — but the output is a
+                regression spec your CI gates, not a replay you watch.
+              </p>
+              <p className="text-sm text-[var(--text-secondary)] leading-relaxed">
+                Jam, LogRocket, and Sentry Replay capture console output and
+                network requests behind their own accounts and pricing tiers.
+                CUIT captures the same signal — pointer events, console logs,
+                uncaught errors — and feeds it directly into Claude Code via{" "}
+                <code className="font-mono text-[var(--color-accent)]">
+                  /cuit-loop
+                </code>
+                . What comes out is not a video you hand to an engineer. It is
+                a{" "}
+                <code className="font-mono text-[var(--color-accent)]">
+                  .spec.ts
+                </code>{" "}
+                that runs green in CI from that point on. Self-instrument in
+                minutes;{" "}
+                <code className="font-mono text-[var(--color-accent)]">
+                  /cuit-instrument
+                </code>{" "}
+                handles the wiring.
+              </p>
+            </div>
+            <div className="flex-shrink-0 md:w-64">
+              <ul className="space-y-2 text-sm">
+                <li className="flex items-start gap-2 text-[var(--text-secondary)]">
+                  <span className="text-green-400 mt-0.5 font-bold" aria-hidden="true">✓</span>
+                  <span>
+                    <strong className="text-[var(--text-primary)]">console.log / warn / error</strong>
+                    {" "}captured with full stack trace
+                  </span>
+                </li>
+                <li className="flex items-start gap-2 text-[var(--text-secondary)]">
+                  <span className="text-green-400 mt-0.5 font-bold" aria-hidden="true">✓</span>
+                  <span>
+                    <strong className="text-[var(--text-primary)]">Uncaught exceptions</strong>
+                    {" "}surfaced in the session blob
+                  </span>
+                </li>
+                <li className="flex items-start gap-2 text-[var(--text-secondary)]">
+                  <span className="text-green-400 mt-0.5 font-bold" aria-hidden="true">✓</span>
+                  <span>
+                    <strong className="text-[var(--text-primary)]">
+                      <code className="font-mono">expect(consoleLogs.errors).toHaveLength(0)</code>
+                    </strong>
+                    {" "}auto-asserted in every generated spec
+                  </span>
+                </li>
+                <li className="flex items-start gap-2 text-[var(--text-secondary)]">
+                  <span className="text-green-400 mt-0.5 font-bold" aria-hidden="true">✓</span>
+                  <span>
+                    <strong className="text-[var(--text-primary)]">No account, no SaaS pricing</strong>
+                    {" "}— runs local, open source
+                  </span>
+                </li>
+                <li className="flex items-start gap-2 text-[var(--text-secondary)]">
+                  <span className="text-[var(--text-tertiary)] mt-0.5" aria-hidden="true">→</span>
+                  <span className="italic text-[var(--text-tertiary)]">
+                    Jam / LogRocket give you a replay to watch.
+                    CUIT gives Claude Code a spec to gate.
+                  </span>
+                </li>
+              </ul>
+            </div>
           </div>
         </div>
 

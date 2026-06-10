@@ -116,3 +116,48 @@ export function registerStateSnapshot(provider: SnapshotProvider): void {
   }
   snapshotProvider = provider;
 }
+
+let capturedConsoleErrors: unknown[][] = [];
+let originalConsoleError: typeof console.error | null = null;
+
+/**
+ * Start intercepting `console.error` so a later `assertNoConsoleErrors()` can
+ * fail the test if any were emitted during the interaction. Idempotent: a
+ * second call resets the captured buffer without re-wrapping.
+ */
+export function captureConsoleErrors(): void {
+  capturedConsoleErrors = [];
+  if (originalConsoleError !== null) return;
+  originalConsoleError = console.error.bind(console);
+  console.error = (...args: unknown[]): void => {
+    capturedConsoleErrors.push(args);
+  };
+}
+
+/** Stop intercepting and restore the original `console.error`. */
+export function restoreConsoleErrors(): void {
+  if (originalConsoleError === null) return;
+  console.error = originalConsoleError;
+  originalConsoleError = null;
+  capturedConsoleErrors = [];
+}
+
+/** The console.error calls captured since the last `captureConsoleErrors()`. */
+export function getCapturedConsoleErrors(): unknown[][] {
+  return [...capturedConsoleErrors];
+}
+
+/**
+ * Throw if any `console.error` was captured during the interaction. A console
+ * error during a UI action is a regression signal even when state looks right.
+ */
+export function assertNoConsoleErrors(): void {
+  if (capturedConsoleErrors.length === 0) return;
+  const rendered = capturedConsoleErrors
+    .map((args) => args.map((a) => String(a)).join(' '))
+    .join('\n');
+  throw new Error(
+    `assertNoConsoleErrors: ${capturedConsoleErrors.length} console error(s) ` +
+      `during interaction:\n${rendered}`,
+  );
+}

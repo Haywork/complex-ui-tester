@@ -95,7 +95,7 @@ export function PricingTeaser() {
                 ))}
               </ul>
 
-              {tier.id === "oss" || tier.ctaHref.startsWith("http") ? (
+              {tier.ctaHref.startsWith("http") || tier.ctaHref.startsWith("mailto:") ? (
                 <a
                   href={tier.ctaHref}
                   target="_blank"
@@ -128,7 +128,7 @@ export function PricingTeaser() {
         <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-4">
           <Link href="/signup">
             <Button variant="primary" size="md">
-              Start free — open Claude Code and run the MCP skill
+              Get your free token — close your first loop in Claude Code today
             </Button>
           </Link>
           <Link
