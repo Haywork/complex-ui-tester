@@ -9,6 +9,50 @@ export interface ComparisonRow {
   vsCuit: string;
 }
 
+/** Status values for the agentic-native feature matrix. */
+export type AgenticStatus = "yes" | "no" | "partial";
+
+export interface AgenticFeatureRow {
+  /** Short label for the feature being compared. */
+  feature: string;
+  /** One-line explanation shown below the label. */
+  detail: string;
+  /** Status per tool — keys must match AgenticMatrixColumn.key. */
+  values: Record<string, AgenticStatus>;
+}
+
+export interface AgenticMatrixColumn {
+  /** Stable identifier used as key in AgenticFeatureRow.values. */
+  key: string;
+  /** Display name shown in the column header. */
+  label: string;
+  /** Whether this is the "us" column — gets accent treatment. */
+  isCuit?: boolean;
+}
+
+export const AGENTIC_COLUMNS: AgenticMatrixColumn[] = [
+  { key: "cuit",             label: "CUIT",              isCuit: true },
+  { key: "mabl",             label: "Mabl" },
+  { key: "octomind",         label: "Octomind" },
+  { key: "playwright_diy",   label: "Playwright (DIY)" },
+  { key: "claude_in_chrome", label: "claude-in-chrome" },
+];
+
+export const AGENTIC_FEATURE_ROWS: AgenticFeatureRow[] = [
+  {
+    feature: "Agentic-tool-native (Claude Code, Cursor, MCP)",
+    detail:
+      "Ships an MCP server + skills so Claude Code can generate and run specs without leaving the conversation — no curl, no REST.",
+    values: {
+      cuit:             "yes",
+      mabl:             "no",
+      octomind:         "no",
+      playwright_diy:   "no",
+      claude_in_chrome: "partial",
+    },
+  },
+];
+
 export const COMPARISON: ComparisonRow[] = [
   {
     approach: 'Playwright tests written by hand',

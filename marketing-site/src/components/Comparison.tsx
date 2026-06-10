@@ -1,5 +1,36 @@
 import { Badge } from "@/components/ui/Badge";
-import { COMPARISON } from "@/content/comparison";
+import {
+  AGENTIC_COLUMNS,
+  AGENTIC_FEATURE_ROWS,
+  AgenticStatus,
+  COMPARISON,
+} from "@/content/comparison";
+
+/** Maps AgenticStatus to a display cell. */
+function AgenticCell({ status }: { status: AgenticStatus }) {
+  if (status === "yes") {
+    return (
+      <span className="flex items-center justify-center gap-1.5 text-green-400 font-medium text-sm">
+        <span aria-hidden="true">✓</span>
+        <span>Yes</span>
+      </span>
+    );
+  }
+  if (status === "partial") {
+    return (
+      <span className="flex items-center justify-center gap-1.5 text-amber-400 font-medium text-sm">
+        <span aria-hidden="true">~</span>
+        <span>Partial</span>
+      </span>
+    );
+  }
+  return (
+    <span className="flex items-center justify-center gap-1.5 text-red-400 font-medium text-sm">
+      <span aria-hidden="true">✗</span>
+      <span>No</span>
+    </span>
+  );
+}
 
 export function Comparison() {
   return (
@@ -15,23 +46,106 @@ export function Comparison() {
               className="inline-block w-4 h-px bg-[var(--color-accent)]"
               aria-hidden="true"
             />
-            What about Playwright? · claude-in-chrome? · screenshot diff?
+            Claude Code-native · MCP server + skills · zero curl required
           </p>
           <h2
             id="comparison-heading"
             className="text-3xl sm:text-4xl md:text-5xl font-bold text-[var(--text-primary)] mb-5 leading-tight"
           >
-            All of these work.
+            The only testing tool
             <br />
-            Each one fails differently.
+            built for Claude Code.
           </h2>
           <p className="text-[var(--text-secondary)] leading-relaxed">
-            Verifying UI is not a solved problem with zero alternatives — five
-            approaches already exist, and they all do something useful. They
-            also all have specific failure modes that bite teams shipping
-            complex UIs daily. Here&apos;s the honest comparison.
+            Every other approach hands you a REST endpoint and says good luck.
+            CUIT ships an MCP server and two Claude Code skills — the feedback
+            loop lives inside your coding session, not a separate dashboard.
+            And when the model changes, the loop stays: the substrate is
+            deterministic specs, not LLM calls in CI.
           </p>
         </div>
+
+        {/* ── Agentic-native feature matrix ────────────────────────────── */}
+        <div
+          className="mb-12 rounded-[var(--radius-lg)] border border-[var(--color-accent)]/30 bg-[var(--bg-secondary)] overflow-hidden"
+          role="region"
+          aria-label="Agentic-tool-native feature comparison"
+        >
+          <div className="px-5 py-4 border-b border-[var(--color-accent)]/20 bg-orange-950/20">
+            <p className="font-mono text-[10px] uppercase tracking-widest text-[var(--color-accent)] flex items-center gap-2">
+              <span aria-hidden="true">◆</span>
+              Key differentiator
+            </p>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm" aria-label="Agentic-native support by tool">
+              <thead>
+                <tr className="border-b border-[var(--border-color)]">
+                  {/* Feature label column */}
+                  <th
+                    scope="col"
+                    className="px-5 py-3 text-left text-[10px] font-mono uppercase tracking-widest text-[var(--text-tertiary)] w-1/3"
+                  >
+                    Feature
+                  </th>
+                  {AGENTIC_COLUMNS.map((col) => (
+                    <th
+                      key={col.key}
+                      scope="col"
+                      className={[
+                        "px-4 py-3 text-center text-xs font-semibold whitespace-nowrap",
+                        col.isCuit
+                          ? "text-[var(--color-accent)]"
+                          : "text-[var(--text-secondary)]",
+                      ].join(" ")}
+                    >
+                      {col.label}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {AGENTIC_FEATURE_ROWS.map((row) => (
+                  <tr
+                    key={row.feature}
+                    className="border-b border-[var(--border-color)] last:border-0"
+                  >
+                    <td className="px-5 py-4 align-top">
+                      <p className="font-medium text-[var(--text-primary)] text-sm leading-snug">
+                        {row.feature}
+                      </p>
+                      <p className="mt-1 text-[11px] text-[var(--text-tertiary)] leading-relaxed">
+                        {row.detail}
+                      </p>
+                    </td>
+                    {AGENTIC_COLUMNS.map((col) => (
+                      <td
+                        key={col.key}
+                        className={[
+                          "px-4 py-4 text-center align-middle",
+                          col.isCuit ? "bg-orange-950/10" : "",
+                        ].join(" ")}
+                      >
+                        <AgenticCell status={row.values[col.key] as AgenticStatus} />
+                        {col.key === "claude_in_chrome" && row.values[col.key] === "partial" && (
+                          <p className="mt-1 text-[10px] text-[var(--text-tertiary)] leading-tight">
+                            Chrome plugin only
+                          </p>
+                        )}
+                        {col.key === "playwright_diy" && row.values[col.key] === "no" && (
+                          <p className="mt-1 text-[10px] text-[var(--text-tertiary)] leading-tight">
+                            unless you build it
+                          </p>
+                        )}
+                      </td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+        {/* ── End agentic-native matrix ─────────────────────────────────── */}
 
         <div className="space-y-5">
           {COMPARISON.map((row) => (

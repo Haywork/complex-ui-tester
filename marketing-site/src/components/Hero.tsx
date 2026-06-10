@@ -4,17 +4,13 @@ import Link from "next/link";
 import { Button } from "@/components/ui/Button";
 
 const STAT_ROW = [
-  { value: "0.18s", label: "closed loop, end-to-end" },
   { value: "73 / 73", label: "package tests passing" },
   { value: "0%", label: "CI flake rate" },
+  { value: "0.18s", label: "loop closed, end-to-end" },
   { value: "Chrome ext", label: "first-party recorder shipping" },
 ];
 
 export function Hero() {
-  const scrollToDemo = () => {
-    document.getElementById("demo")?.scrollIntoView({ behavior: "smooth" });
-  };
-
   return (
     <section
       className="relative pt-32 pb-16 md:pt-40 md:pb-24 overflow-hidden"
@@ -49,7 +45,7 @@ export function Hero() {
               className="inline-block w-4 h-px bg-[var(--color-accent)]"
               aria-hidden="true"
             />
-            The deterministic feedback edge for agentic UI engineering
+            MCP skill for Claude Code · model-invariant · CI-native
           </p>
 
           {/* Headline */}
@@ -57,36 +53,35 @@ export function Hero() {
             id="hero-headline"
             className="text-5xl sm:text-6xl md:text-7xl font-bold leading-[0.95] tracking-tight text-[var(--text-primary)] mb-6"
           >
-            Your AI tool ships UI changes.{" "}
+            Close the loop in{" "}
             <br className="hidden sm:block" />
             {/* Dark mode: gradient from bright paper → mute-5. Light mode: solid text-primary. */}
             <span
               className="relative inline-block hero-gradient-text"
             >
-              Make the regression spec land with it.
+              Claude Code.
             </span>
           </h1>
 
           {/* Subheadline */}
           <p className="text-lg md:text-xl text-[var(--text-secondary)] max-w-2xl leading-relaxed mb-10">
-            Yes, Playwright works — when a human writes it. Yes, Claude Code
-            can drive a Chrome extension — non-deterministically. Yes, Jam and
-            LogRocket record sessions — without producing a regression test.{" "}
+            The feedback loop is the durable substrate — not the model, not
+            the recorder, not the test runner.{" "}
             <strong className="text-[var(--text-primary)] font-semibold">
               CUIT
             </strong>{" "}
-            captures the interaction in a 10 KB Chrome extension, generates a
-            Playwright spec grounded in semantic events (not pixel coords),
-            and locks it in as a CI gate.{" "}
+            is a Claude Code MCP skill that captures what your agent ships,
+            generates a grounded Playwright spec from semantic events, and
+            locks it in as a CI gate — compressing days of manual QA into a
+            single conversation turn.{" "}
             <span className="text-[var(--text-primary)]">
-              Two flows — lock in a baseline, or reproduce a bug.
-            </span>{" "}
-            Closed loop in 0.18s.
+              Your agent should verify what it ships.
+            </span>
           </p>
 
           {/* CTAs */}
           <div className="flex flex-wrap items-center gap-3 mb-16">
-            <a href="/downloads/cuit-recorder-alpha.zip" download className="inline-flex">
+            <Link href="/signup" className="inline-flex">
               <Button variant="primary" size="lg">
                 <svg
                   width="16"
@@ -103,27 +98,29 @@ export function Hero() {
                     strokeLinejoin="round"
                   />
                 </svg>
-                Download the alpha (10 KB)
+                Get early access
               </Button>
-            </a>
-            <Button variant="outline" size="lg" onClick={scrollToDemo}>
-              <svg
-                width="16"
-                height="16"
-                viewBox="0 0 16 16"
-                fill="none"
-                aria-hidden="true"
-              >
-                <path
-                  d="M3 8L13 8M9 4l4 4-4 4"
-                  stroke="currentColor"
-                  strokeWidth="1.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-              See the 90-second demo
-            </Button>
+            </Link>
+            <Link href="/examples/claude-code-workflows" className="inline-flex">
+              <Button variant="outline" size="lg">
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 16 16"
+                  fill="none"
+                  aria-hidden="true"
+                >
+                  <path
+                    d="M3 8L13 8M9 4l4 4-4 4"
+                    stroke="currentColor"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+                See Claude Code workflows
+              </Button>
+            </Link>
             <Link
               href="https://github.com/speechlabinc/complex-ui-tester/blob/main/ARCHITECTURE.md"
               target="_blank"

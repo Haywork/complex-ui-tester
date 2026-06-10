@@ -3,63 +3,81 @@ import { CodeBlock } from "@/components/ui/Code";
 const STEPS = [
   {
     number: "01",
-    title: "Record",
+    title: "Drop in the MCP server",
     description:
-      "Your users use Jam, LogRocket, Sentry Replay, FullStory, or Datadog RUM as they do today. No SDK changes, no new instrumentation, no behavior change for your users.",
+      "Add CUIT to Claude Code in one edit. Paste the server block into ~/.claude/mcp_servers.json and you're wired — no SDK changes, no new instrumentation, nothing your users ever see.",
     visual: "terminal" as const,
-    code: `# No code changes in your app.
-# Your users file bugs the same way they always did.
+    code: `// ~/.claude/mcp_servers.json
+{
+  "mcpServers": {
+    "cuit": {
+      "command": "npx",
+      "args": ["-y", "@cuit/mcp-server"]
+    }
+  }
+}
 
-user → Jam "drag didn't work" → session URL in Slack
-                    ↓
-    CUIT connector picks it up`,
-    filename: "no-changes.sh",
-    badge: "5 vendors supported",
+# Claude Code picks it up on next launch.
+# Verify with: /mcp`,
+    filename: "mcp_servers.json",
+    badge: "One-time setup",
   },
   {
     number: "02",
-    title: "Generate",
+    title: "Run /cuit-instrument in your repo",
     description:
-      "A 3-pass LLM pipeline normalizes the session, grounds selectors against your tenant's selector dictionary and bug-class corpus, then materializes a Playwright spec that calls only validated harness primitives. AST validation enforces it — hallucinations don't compile.",
+      "Open Claude Code, type /cuit-instrument, and the skill auto-detects your framework and state library, mounts window.__cuitDebug, installs the recorder bridge, and sets up the GitHub Action. Compress what used to be a day of wiring into under a minute.",
     visual: "code" as const,
-    code: `// Generated: issue-2014-segment-collision.spec.ts
-// Confidence: 0.91 — AST grounded ✓
+    code: `# In Claude Code — just type the skill name:
 
-import { test, expect } from '@playwright/test';
-import { dispatchDrag, getStateSnapshot, setClock } from '@cuit/harness';
+> /cuit-instrument
 
-test('segment 0 drag — no collision regression', async ({ page }) => {
-  await page.goto('/waveform');
-  await setClock(page, 0);
+  ✔ Detected: Next.js 14 + Zustand
+  ✔ Mounted window.__cuitDebug bridge
+  ✔ Installed @cuit/recorder (dev dep)
+  ✔ Added .github/workflows/cuit.yml
+  ✔ Round-trip test session: PASS
 
-  const before = await getStateSnapshot(page);
-  expect(before.segments[0].x).toBe(0);
-
-  await dispatchDrag(page, getSegment(page, 'seg-0'), { dx: 100, dy: 0 });
-
-  const after = await getStateSnapshot(page);
-  expect(after.segments[0].x).toBe(100);
-});`,
-    filename: "issue-2014-segment-collision.spec.ts",
-    badge: "< $0.50 all-in",
+  Ready. Hit a bug and run /cuit-loop.`,
+    filename: "cuit-instrument.sh",
+    badge: "< 60 seconds",
   },
   {
     number: "03",
-    title: "Lock in",
+    title: "Hit a bug — type /cuit-loop, watch the gate land",
     description:
-      "The GitHub App opens a PR with the generated spec. Dry-run goes RED (proving the bug is reproducible). Engineer reviews, ships the fix in the same PR, dry-run goes GREEN. From that moment, the spec is a CI gate — reintroducing the bug in any future PR fails CI before merge.",
+      "When a bug surfaces, run /cuit-loop in Claude Code. It reads the recorded session, generates a grounded Playwright spec, runs it red to prove the bug is real, and opens a PR. Ship the fix in the same PR — the spec goes green and becomes a permanent CI gate. The feedback loop is the substrate: model-invariant, zero maintenance.",
     visual: "pr" as const,
-    code: `# GitHub Actions — runs on every PR
+    code: `# Bug filed. You type in Claude Code:
 
-  cuit/spec-grounded     ✅ PASS
-  cuit/dry-run           ✅ GREEN (after fix)
-  cuit/confidence        ✅ 0.91 / threshold 0.75
+> /cuit-loop
 
-  All checks passed — ready to merge`,
-    filename: "ci-output.txt",
+  ✔ Session ingested (Jam / LogRocket / Sentry Replay)
+  ✔ Spec generated — confidence 0.91, AST grounded
+  ✔ Dry-run: RED  (bug reproduced ✓)
+  ✔ PR opened: fix + spec in one branch
+
+  After your fix lands:
+  cuit/dry-run   ✅ GREEN — gate permanent`,
+    filename: "cuit-loop.sh",
     badge: "Gate is permanent",
   },
 ];
+
+/** REST / curl users: see /docs/api for the HTTP fallback. */
+function RestFallbackFooter() {
+  return (
+    <p className="text-center text-xs text-[var(--text-tertiary)] mt-12">
+      Prefer HTTP?{" "}
+      <a
+        href="/docs/api"
+        className="underline underline-offset-2 hover:text-[var(--text-secondary)] transition-colors"
+      >
+        REST fallback docs →
+      </a>
+    </p>
+  );
+}
 
 export function HowItWorks() {
   return (
@@ -77,12 +95,12 @@ export function HowItWorks() {
             id="how-it-works-heading"
             className="text-3xl sm:text-4xl font-bold text-[var(--text-primary)] mb-4"
           >
-            Three steps. One permanent CI gate.
+            Three Claude Code commands. One permanent CI gate.
           </h2>
           <p className="text-[var(--text-secondary)] leading-relaxed">
-            The full loop from filed bug to merged regression spec takes under 8
-            minutes on median sessions. After that, the gate is permanent — it
-            costs nothing to maintain.
+            The full loop — from filed bug to merged regression spec — runs
+            inside Claude Code. MCP tool, skill, done. Median time under 8
+            minutes. After that, the gate costs nothing to maintain.
           </p>
         </div>
 
@@ -127,7 +145,8 @@ export function HowItWorks() {
                   language={
                     step.filename.endsWith(".ts")
                       ? "typescript"
-                      : step.filename.endsWith(".sh")
+                      : step.filename.endsWith(".sh") ||
+                        step.filename.endsWith(".json")
                       ? "bash"
                       : "text"
                   }
@@ -136,6 +155,8 @@ export function HowItWorks() {
             </div>
           ))}
         </div>
+
+        <RestFallbackFooter />
       </div>
     </section>
   );
