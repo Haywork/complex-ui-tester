@@ -16,10 +16,10 @@ import {
 const STAGES = [
   {
     label: 'Observe',
-    edge: 'mcp__Jam__find_sessions',
+    edge: 'cuit__get_session',
     edgeKind: 'MCP tool' as const,
     detail:
-      'The Jam MCP tool pulls the recorded session — pointer events, semantic selectors, window.__cuitDebug state snapshots — into a single JSON blob. No curl. Claude Code calls the tool directly.',
+      'Whatever feedback source you already use — your recorder, Jam, LogRocket, Sentry Replay, RUM — normalizes into one SessionEvent[] representation: pointer events, semantic selectors, console/errors, window.__cuitDebug snapshots. No curl. Claude Code calls the tool directly.',
   },
   {
     label: 'Propose',
@@ -49,7 +49,7 @@ const CUIT_LOOP_EXAMPLE = `# Claude Code conversation — no curl, no POST /v1/s
 
 > /cuit-loop
 
-  [cuit-loop] Reading session via mcp__Jam__find_sessions...
+  [cuit-loop] Reading session via cuit__get_session (source: any adapter)...
   [cuit-loop] 27 events normalized (6 pointer, 20 state-snapshot)
 
   [cuit-loop] Generating spec with @cuit/spec-gen...
@@ -278,8 +278,8 @@ export function AgenticLoop() {
                       </code>{' '}
                       in Claude Code.
                     </strong>{' '}
-                    The skill wires the Jam MCP tool, spec-gen, and the harness
-                    into one conversation turn. Observe&nbsp;&rarr;&nbsp;propose&nbsp;&rarr;&nbsp;verify&nbsp;&rarr;&nbsp;gate
+                    The skill wires whatever feedback source you have, spec-gen,
+                    and the harness into one conversation turn. Observe&nbsp;&rarr;&nbsp;propose&nbsp;&rarr;&nbsp;verify&nbsp;&rarr;&nbsp;gate
                     without leaving your editor.
                   </span>
                 </li>

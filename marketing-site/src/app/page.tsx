@@ -25,6 +25,7 @@ export const metadata: Metadata = {
 import { SiteShell } from "@/components/SiteShell";
 import { Hero } from "@/components/Hero";
 import { AgenticLoop } from "@/components/AgenticLoop";
+import { WiresEverything } from "@/components/WiresEverything";
 import { TwoFlows } from "@/components/TwoFlows";
 import { RecorderAlpha } from "@/components/RecorderAlpha";
 import { Comparison } from "@/components/Comparison";
@@ -78,6 +79,7 @@ export default async function Home({
     <SiteShell>
       <Hero />
       <AgenticLoop />
+      <WiresEverything />
       <TwoFlows />
       <RecorderAlpha />
       <DataWarehouse />
