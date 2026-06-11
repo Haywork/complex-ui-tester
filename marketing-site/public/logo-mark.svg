@@ -1,0 +1,71 @@
+<svg
+  xmlns="http://www.w3.org/2000/svg"
+  viewBox="0 0 16 16"
+  fill="none"
+  role="img"
+  aria-label="CUIT mark"
+>
+  <title>CUIT</title>
+
+  <!--
+    Favicon mark — optimised for 16×16.
+    Circle r=5.5, center (8,8). Circumference ≈ 34.56.
+    Stroke width 2px — thick enough to register at small sizes.
+
+    RED dashes: ~38% of loop = 13.1 units, dash 2.5 gap 2.2
+    GREEN solid: ~62% of loop = 21.4 units
+    Rotate -90 so segment starts at 12 o'clock.
+
+    No knockout needed at this size — visual gap from dasharray spacing
+    provides natural separation between red and green.
+  -->
+
+  <!-- Dark square background — ensures mark reads on any surface -->
+  <rect width="16" height="16" rx="3" fill="#0a0a0b"/>
+
+  <!-- GREEN ambient phosphor -->
+  <circle cx="8" cy="8" r="5.5"
+    stroke="#22c55e" stroke-width="4" stroke-opacity="0.08" fill="none"/>
+
+  <!-- RED dashed segment — first ~38% of ring -->
+  <circle cx="8" cy="8" r="5.5"
+    stroke="#ef4444" stroke-width="1.8" stroke-linecap="round"
+    stroke-dasharray="2.5 2.2"
+    pathLength="34.56"
+    transform="rotate(-90 8 8)"
+  />
+
+  <!-- Mask: overdraw red tail with bg -->
+  <circle cx="8" cy="8" r="5.5"
+    stroke="#0a0a0b" stroke-width="2.4" stroke-linecap="butt"
+    stroke-dasharray="21.4 13.16"
+    stroke-dashoffset="-13.16"
+    pathLength="34.56"
+    transform="rotate(-90 8 8)"
+  />
+
+  <!-- GREEN solid segment — last ~62% of ring -->
+  <!-- Glow -->
+  <circle cx="8" cy="8" r="5.5"
+    stroke="#22c55e" stroke-width="4" stroke-opacity="0.15" stroke-linecap="round"
+    stroke-dasharray="21.4 13.16"
+    stroke-dashoffset="-13.16"
+    pathLength="34.56"
+    transform="rotate(-90 8 8)"
+  />
+  <!-- Solid -->
+  <circle cx="8" cy="8" r="5.5"
+    stroke="#22c55e" stroke-width="1.8" stroke-linecap="round"
+    stroke-dasharray="21.4 13.16"
+    stroke-dashoffset="-13.16"
+    pathLength="34.56"
+    transform="rotate(-90 8 8)"
+  />
+
+  <!-- Tail bite dot at top (12 o'clock) — where green meets red -->
+  <circle cx="8" cy="2.5" r="1.2" fill="#22c55e"/>
+
+  <!-- Interior play triangle — tiny, 3 pts -->
+  <path d="M5.2 6.5 L11 8 L5.2 9.5 Z"
+    fill="#22c55e" fill-opacity="0.35"/>
+</svg>

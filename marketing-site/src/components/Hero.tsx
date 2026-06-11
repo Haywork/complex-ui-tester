@@ -2,12 +2,23 @@
 
 import Link from "next/link";
 import { Button } from "@/components/ui/Button";
+import { BrandMark } from "@/components/BrandMark";
 
 const STAT_ROW = [
   { value: "0.18s", label: "loop closed, end-to-end" },
   { value: "73 / 73", label: "package tests passing" },
   { value: "0%", label: "CI flake rate" },
   { value: "Chrome ext", label: "first-party recorder shipping" },
+];
+
+/**
+ * Three concrete steps shown in the hero as a horizontal mini-flow.
+ * accent determines the dot / connector colour to signal pass vs in-progress vs fail.
+ */
+const STEPS: { step: string; label: string; accent: "green" | "red" | "neutral" }[] = [
+  { step: "01", label: "Record interaction in Chrome", accent: "red" },
+  { step: "02", label: "Run /cuit-loop in Claude Code", accent: "neutral" },
+  { step: "03", label: "Regression gate committed to CI", accent: "green" },
 ];
 
 export function Hero() {
@@ -39,41 +50,100 @@ export function Hero() {
 
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="max-w-4xl">
+          {/* BrandMark — trust / brand anchor above the headline */}
+          <div className="mb-8">
+            <BrandMark size={28} />
+          </div>
+
           {/* Eyebrow */}
           <p className="font-mono text-xs uppercase tracking-widest text-[var(--text-tertiary)] mb-6 flex items-center gap-2">
             <span
               className="inline-block w-4 h-px bg-[var(--color-accent)]"
               aria-hidden="true"
             />
-            MCP skill for Claude Code · model-invariant · CI-native
+            MCP skill for Claude Code · deterministic · CI-native
           </p>
 
-          {/* Headline */}
+          {/* Headline — concrete outcome first */}
           <h1
             id="hero-headline"
             className="text-5xl sm:text-6xl md:text-7xl font-bold leading-[0.95] tracking-tight text-[var(--text-primary)] mb-6"
           >
-            The UI feedback loop{" "}
+            Turn a recorded interaction{" "}
+            <br className="hidden sm:block" />
+            into a committed regression gate{" "}
             <br className="hidden sm:block" />
             {/* Dark mode: gradient from bright paper → mute-5. Light mode: solid text-primary. */}
             <span className="relative inline-block hero-gradient-text">
-              Claude Code was missing.
+              in under an hour.
             </span>
           </h1>
 
-          {/* Subheadline */}
+          {/* Subheadline — method, not slogan */}
           <p className="text-lg md:text-xl text-[var(--text-secondary)] max-w-2xl leading-relaxed mb-10">
-            Say{" "}
+            A deterministic harness — no pixel-coordinate tests, no fragile
+            selectors. Run{" "}
             <code className="font-mono text-sm px-1.5 py-0.5 rounded bg-[var(--color-mute-1)] text-[var(--text-primary)]">
               /cuit-loop
             </code>{" "}
-            in Claude Code. CUIT captures every interaction and console log,
-            generates a grounded Playwright spec from semantic events, and locks
-            it in as a CI gate — all in one conversation turn.{" "}
-            <span className="text-[var(--text-primary)] font-medium">
-              Closed-loop verification, not just code generation.
-            </span>
+            in Claude Code: CUIT spec-gens a grounded Playwright spec from
+            semantic events and commits a{" "}
+            <span
+              className="font-semibold"
+              style={{ color: "var(--accent-green)" }}
+            >
+              green
+            </span>{" "}
+            CI gate — all in one conversation turn.
           </p>
+
+          {/* Three-step mini-flow */}
+          <ol
+            aria-label="How it works in three steps"
+            className="flex flex-wrap gap-x-0 gap-y-3 mb-10"
+          >
+            {STEPS.map(({ step, label, accent }, index) => {
+              const dotColor =
+                accent === "green"
+                  ? "var(--accent-green)"
+                  : accent === "red"
+                  ? "var(--accent-red)"
+                  : "var(--text-tertiary)";
+              const isLast = index === STEPS.length - 1;
+
+              return (
+                <li
+                  key={step}
+                  className="flex items-center gap-3"
+                >
+                  {/* Step dot */}
+                  <span
+                    className="w-2 h-2 rounded-full shrink-0"
+                    style={{ background: dotColor }}
+                    aria-hidden="true"
+                  />
+                  {/* Step label */}
+                  <span className="font-mono text-xs text-[var(--text-secondary)]">
+                    <span
+                      className="mr-1.5 font-semibold"
+                      style={{ color: dotColor }}
+                    >
+                      {step}
+                    </span>
+                    {label}
+                  </span>
+                  {/* Connector — hidden after last item */}
+                  {!isLast && (
+                    <span
+                      className="hidden sm:block w-6 h-px mx-1 shrink-0"
+                      style={{ background: "var(--border-color)" }}
+                      aria-hidden="true"
+                    />
+                  )}
+                </li>
+              );
+            })}
+          </ol>
 
           {/* CTAs */}
           <div className="flex flex-wrap items-center gap-3 mb-16">
@@ -119,7 +189,7 @@ export function Hero() {
             </Link>
           </div>
 
-          {/* Stat row — 0.18s evidence pill leads */}
+          {/* Stat row */}
           <div
             className="flex flex-wrap gap-x-8 gap-y-4 pt-8 border-t border-[var(--border-color)]"
             aria-label="Key metrics"

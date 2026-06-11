@@ -321,7 +321,7 @@ export default function QuickstartPage() {
       {/* REST FALLBACK */}
       <section className="py-12 border-t border-[var(--border-color)] bg-[var(--bg-secondary)]">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <details className="group">
+          <details className="group" data-cuit-example="rest-fallback">
             <summary className="cursor-pointer flex items-baseline gap-3 list-none">
               <span className="font-mono text-xs uppercase tracking-widest text-[var(--text-tertiary)] group-open:text-[var(--text-secondary)]">
                 ▸ Need REST instead?

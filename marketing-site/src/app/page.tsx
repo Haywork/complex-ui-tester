@@ -34,6 +34,7 @@ import { HowItWorks } from "@/components/HowItWorks";
 import { DemoWalkthrough } from "@/components/DemoWalkthrough";
 import { ForDevelopers } from "@/components/ForDevelopers";
 import { EvidenceSection } from "@/components/EvidenceSection";
+import { MaturityLadder } from "@/components/MaturityLadder";
 import { PricingTeaser } from "@/components/PricingTeaser";
 import { FAQ } from "@/components/FAQ";
 import { CTA } from "@/components/CTA";
@@ -88,6 +89,7 @@ export default async function Home({
       </Suspense>
       <ForDevelopers />
       <EvidenceSection />
+      <MaturityLadder />
       <PricingTeaser />
       <FAQ />
       <CTA />

@@ -94,6 +94,113 @@ export default function DocsPage() {
         </div>
       </section>
 
+      {/* ── Maturity ladder — compact table mirror ─────────────────────────── */}
+      <section
+        className="py-16 md:py-20 border-t border-[var(--border-color)]"
+        aria-labelledby="docs-maturity-heading"
+        id="maturity"
+      >
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <p className="font-mono text-xs uppercase tracking-widest text-[var(--text-tertiary)] mb-4">
+            Maturity ladder — no surprises
+          </p>
+          <h2
+            id="docs-maturity-heading"
+            className="text-2xl sm:text-3xl font-bold text-[var(--text-primary)] mb-2 leading-tight"
+          >
+            Here&apos;s exactly what runs today.
+          </h2>
+          <p className="text-sm text-[var(--text-secondary)] mb-8 max-w-2xl leading-relaxed">
+            Full three-column breakdown lives on the{" "}
+            <Link
+              href="/#maturity"
+              className="text-[var(--color-accent)] hover:underline font-mono"
+            >
+              homepage ↗
+            </Link>
+            . Quick-reference table below.
+          </p>
+
+          <div className="overflow-x-auto rounded-[var(--radius-lg)] border border-[var(--border-color)]">
+            <table className="w-full text-sm" aria-label="CUIT maturity ladder">
+              <thead>
+                <tr className="border-b border-[var(--border-color)] bg-[var(--bg-tertiary)]">
+                  <th
+                    scope="col"
+                    className="text-left px-5 py-3 font-mono text-[11px] uppercase tracking-widest text-[var(--text-tertiary)] w-36"
+                  >
+                    Tier
+                  </th>
+                  <th
+                    scope="col"
+                    className="text-left px-5 py-3 font-mono text-[11px] uppercase tracking-widest text-[var(--text-tertiary)]"
+                  >
+                    What&apos;s in it
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-[var(--border-color)] bg-[var(--bg-secondary)]">
+                {/* SHIPPING NOW */}
+                <tr className="align-top">
+                  <td className="px-5 py-4 shrink-0">
+                    <span className="inline-flex items-center gap-1.5 font-mono text-xs font-semibold text-[var(--accent-green)]">
+                      <span aria-hidden="true">●</span>
+                      Shipping Now
+                    </span>
+                    <span className="block mt-1 font-mono text-[10px] text-[var(--text-tertiary)]">
+                      v0.x — OSS
+                    </span>
+                  </td>
+                  <td className="px-5 py-4 text-[var(--text-secondary)] leading-relaxed">
+                    Deterministic harness; generalized spec-gen (drag, click,
+                    text shapes); real spec execution via primitive-exec;
+                    recorder with console + error capture; local MCP shim (OSS
+                    runs standalone); 2 adapters (Jam, CUIT); /cuit-loop +
+                    /cuit-instrument skills; AX envelopes + step-back debug
+                    primitives.
+                  </td>
+                </tr>
+
+                {/* IN PROGRESS */}
+                <tr className="align-top">
+                  <td className="px-5 py-4 shrink-0">
+                    <span className="inline-flex items-center gap-1.5 font-mono text-xs font-semibold text-[var(--color-warning)]">
+                      <span aria-hidden="true">◑</span>
+                      In Progress
+                    </span>
+                    <span className="block mt-1 font-mono text-[10px] text-[var(--text-tertiary)]">
+                      private pilot
+                    </span>
+                  </td>
+                  <td className="px-5 py-4 text-[var(--text-secondary)] leading-relaxed">
+                    Hosted SaaS data warehouse (private pilot on Fly + Neon);
+                    LLM 3-pass spec-gen (rule-based is the default today); more
+                    interaction shapes; self-healing selectors.
+                  </td>
+                </tr>
+
+                {/* NOT YET */}
+                <tr className="align-top">
+                  <td className="px-5 py-4 shrink-0">
+                    <span className="inline-flex items-center gap-1.5 font-mono text-xs font-semibold text-[var(--text-tertiary)]">
+                      <span aria-hidden="true">○</span>
+                      Not Yet
+                    </span>
+                    <span className="block mt-1 font-mono text-[10px] text-[var(--text-tertiary)]">
+                      roadmap
+                    </span>
+                  </td>
+                  <td className="px-5 py-4 text-[var(--text-secondary)] leading-relaxed">
+                    AWS production infrastructure; general step-extractor for
+                    arbitrary interactions; SOC 2 Type II report.
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
       <section className="py-16 md:py-20 border-t border-[var(--border-color)]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <h2 className="text-sm font-mono uppercase tracking-widest text-[var(--text-tertiary)] mb-6">

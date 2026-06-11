@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import Script from "next/script";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import { CuitFunnelInstrument } from "@/cuit/CuitFunnelInstrument";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -138,6 +139,8 @@ export default function RootLayout({
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
         {children}
+        {/* CUIT funnel instrumentation — no-op in production unless ?cuitRecorder=1 */}
+        <CuitFunnelInstrument />
       </body>
     </html>
   );

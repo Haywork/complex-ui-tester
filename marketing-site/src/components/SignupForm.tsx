@@ -1,7 +1,15 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import Link from "next/link";
+import { isCuitActive } from "@/cuit/funnel-state";
+
+/** Fire a named CUIT custom event on window when the recorder is active. */
+function emitCuit(name: string): void {
+  if (typeof window !== "undefined" && isCuitActive()) {
+    window.dispatchEvent(new CustomEvent(name));
+  }
+}
 
 const API_URL = "https://cuit-saas-pilot.fly.dev";
 
@@ -49,6 +57,16 @@ export function SignupForm() {
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
 
+  /** Fires cuit:signupFormStarted exactly once per form mount. */
+  const formStartedFired = useRef(false);
+
+  function handleFormFocus() {
+    if (!formStartedFired.current) {
+      formStartedFired.current = true;
+      emitCuit("cuit:signupFormStarted");
+    }
+  }
+
   // Auto-derive slug from company name unless user has typed in the slug field
   const effectiveSlug = slugTouched ? slug : slugify(companyName);
 
@@ -82,7 +100,9 @@ export function SignupForm() {
         setSubmitting(false);
         return;
       }
-      setResult(body as SignupSuccess);
+      const success = body as SignupSuccess;
+      setResult(success);
+      emitCuit("cuit:signupTokenIssued");
     } catch (e) {
       setError(`Network error: ${(e as Error).message}`);
     } finally {
@@ -95,6 +115,7 @@ export function SignupForm() {
     await navigator.clipboard.writeText(result.initial_token.token);
     setCopied(true);
     setTimeout(() => setCopied(false), 2500);
+    emitCuit("cuit:quickstartCopyClicked");
   }
 
   if (result) {
@@ -144,7 +165,8 @@ curl -s ${API_URL}/v1/me \\
   }
 
   return (
-    <form onSubmit={onSubmit} className="space-y-5">
+    // onFocus bubbles from all child inputs — fires signupFormStarted once.
+    <form onSubmit={onSubmit} onFocus={handleFormFocus} className="space-y-5">
       <label className="block">
         <span className="block text-sm font-medium text-[var(--text-primary)] mb-1">
           Email

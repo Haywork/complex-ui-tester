@@ -1,70 +1,136 @@
 @import "tailwindcss";
 
 @theme {
-  /* Colors */
-  --color-ink: #0a0a0b;
-  --color-ink-90: #111113;
-  --color-paper: #fafaf7;
-  --color-accent: #ff5d2a;
-  --color-accent-dim: #cc4a22;
-  --color-mute-1: #1c1c1e;
-  --color-mute-2: #2a2a2d;
-  --color-mute-3: #52525b;
-  --color-mute-4: #71717a;
-  --color-mute-5: #a1a1aa;
-  --color-mute-6: #d4d4d8;
-  --color-success: #22c55e;
-  --color-warning: #f59e0b;
-  --color-error: #ef4444;
+  /* ─── CUIT Terminal/Oscilloscope Palette ──────────────────────────────────
+   *
+   * Two brand accents only:
+   *   --color-pass  (green)  — snapshot passes, resolved loop segment
+   *   --color-fail  (red)    — broken snapshot, alarm state
+   *
+   * Background stack: IDE-grade near-black layered in 3 steps.
+   * Neutral ramp: cool-gray that reads well on dark and (as-needed) light.
+   * Typefaces: grotesk for prose, mono for data/code — no serif.
+   * ──────────────────────────────────────────────────────────────────────── */
 
-  /* Typography */
-  --font-serif: "Instrument Serif", Georgia, "Times New Roman", serif;
-  --font-sans: var(--font-geist-sans), "Inter", system-ui, sans-serif;
-  --font-mono: var(--font-geist-mono), "JetBrains Mono", "SF Mono", "Fira Code", monospace;
+  /* Backgrounds — dark IDE-grade, three-layer depth */
+  --color-ink:    #0d0f0e;   /* deepest: page canvas                        */
+  --color-ink-90: #111412;   /* near-black with a faint terminal-green tint  */
 
-  /* Spacing */
-  --spacing-1: 0.25rem;
-  --spacing-2: 0.5rem;
-  --spacing-3: 0.75rem;
-  --spacing-4: 1rem;
-  --spacing-6: 1.5rem;
-  --spacing-8: 2rem;
+  /* Neutral surface ramp */
+  --color-mute-1: #161a18;   /* panel / card base                           */
+  --color-mute-2: #1e2320;   /* elevated panel / hover surface              */
+  --color-mute-3: #2e3530;   /* border-heavy, dividers                      */
+  --color-mute-4: #4d5a52;   /* disabled text, low-contrast icons           */
+  --color-mute-5: #8a9e90;   /* secondary text                              */
+  --color-mute-6: #c4d4c8;   /* tertiary text, placeholders                 */
+
+  /* Light mode canvas */
+  --color-paper: #f2f5f2;    /* off-white with green tint for light mode    */
+
+  /* Brand accents — exactly two ------------------------------------------ */
+  /* Pass / green — loop resolved, snapshot healthy                          */
+  --color-pass:     #1aff6e;   /* oscilloscope phosphor green, full signal   */
+  --color-pass-dim: #0d8038;   /* pass at rest / hover                       */
+  --color-pass-bg:  #051a0d;   /* tinted well for pass badges / highlights   */
+
+  /* Fail / red — alarm, broken snapshot, loop start                         */
+  --color-fail:     #ff3b3b;   /* alarm red, CRT warning                     */
+  --color-fail-dim: #b52222;   /* fail at rest / hover                       */
+  --color-fail-bg:  #1a0505;   /* tinted well for fail badges / highlights   */
+
+  /* Legacy accent alias (keeps .hero-gradient-text and focus ring working) */
+  --color-accent:     var(--color-pass);
+  --color-accent-dim: var(--color-pass-dim);
+
+  /* Semantic status (keep names; retune to CUIT brand) */
+  --color-success: var(--color-pass);
+  --color-warning: #f0a500;   /* amber — trace warning, non-brand            */
+  --color-error:   var(--color-fail);
+
+  /* ─── Typography ────────────────────────────────────────────────────────
+   * Grotesk for prose, mono for all code/data. No decorative serif.
+   * ---------------------------------------------------------------------- */
+  --font-serif: "Instrument Serif", Georgia, "Times New Roman", serif; /* kept for compat */
+  --font-sans:  var(--font-geist-sans), "Inter", system-ui, sans-serif;
+  --font-mono:  var(--font-geist-mono), "JetBrains Mono", "SF Mono", "Fira Code", monospace;
+
+  /* ─── Spacing (unchanged) ───────────────────────────────────────────── */
+  --spacing-1:  0.25rem;
+  --spacing-2:  0.5rem;
+  --spacing-3:  0.75rem;
+  --spacing-4:  1rem;
+  --spacing-6:  1.5rem;
+  --spacing-8:  2rem;
   --spacing-12: 3rem;
   --spacing-16: 4rem;
   --spacing-24: 6rem;
   --spacing-32: 8rem;
   --spacing-48: 12rem;
 
-  /* Radius */
+  /* ─── Radius (unchanged) ────────────────────────────────────────────── */
   --radius-sm: 4px;
   --radius-md: 8px;
   --radius-lg: 12px;
 
-  /* Shadows */
-  --shadow-card: 0 1px 3px 0 rgb(0 0 0 / 0.4), 0 1px 2px -1px rgb(0 0 0 / 0.4);
-  --shadow-card-hover: 0 4px 12px 0 rgb(0 0 0 / 0.5);
+  /* ─── Shadows ────────────────────────────────────────────────────────── */
+  --shadow-card:       0 1px 3px 0 rgb(0 0 0 / 0.6), 0 1px 2px -1px rgb(0 0 0 / 0.5);
+  --shadow-card-hover: 0 4px 16px 0 rgb(0 0 0 / 0.7), 0 0 0 1px rgb(26 255 110 / 0.08);
 }
 
-/* Dark mode is default; light mode via class */
+/* ─── Semantic tokens — dark (default) ──────────────────────────────────── */
 :root {
-  --bg-primary: var(--color-ink);
-  --bg-secondary: var(--color-mute-1);
-  --bg-tertiary: var(--color-mute-2);
-  --text-primary: var(--color-paper);
+  /* Backgrounds: layered IDE-grade depth */
+  --bg-primary:   var(--color-ink);     /* page canvas                       */
+  --bg-secondary: var(--color-mute-1);  /* cards, panels                     */
+  --bg-tertiary:  var(--color-mute-2);  /* elevated / hover surfaces         */
+
+  /* Text */
+  --text-primary:   var(--color-paper);
   --text-secondary: var(--color-mute-5);
-  --text-tertiary: var(--color-mute-4);
-  --border-color: var(--color-mute-2);
+  --text-tertiary:  var(--color-mute-4);
+
+  /* Borders */
+  --border-color: var(--color-mute-3);
+
+  /* Accent aliases — components that already read --accent-primary keep working */
+  --accent-primary: var(--color-pass);
+  --accent-primary-dim: var(--color-pass-dim);
+
+  /* Brand accent pair — explicit names for new components */
+  --accent-green:     var(--color-pass);
+  --accent-green-dim: var(--color-pass-dim);
+  --accent-green-bg:  var(--color-pass-bg);
+  --accent-red:       var(--color-fail);
+  --accent-red-dim:   var(--color-fail-dim);
+  --accent-red-bg:    var(--color-fail-bg);
+
   color-scheme: dark;
 }
 
+/* ─── Semantic tokens — light (via .light class) ─────────────────────────
+ * Keeps structure; mutes the phosphor accents to legible values on paper.
+ * -------------------------------------------------------------------------- */
 :root.light {
-  --bg-primary: var(--color-paper);
-  --bg-secondary: #f4f4f2;
-  --bg-tertiary: #e8e8e4;
-  --text-primary: var(--color-ink);
-  --text-secondary: #52525b;
-  --text-tertiary: #71717a;
-  --border-color: #d4d4d8;
+  --bg-primary:   var(--color-paper);
+  --bg-secondary: #e8ede9;
+  --bg-tertiary:  #dce3dd;
+
+  --text-primary:   #0d1a10;
+  --text-secondary: #3a4f3e;
+  --text-tertiary:  #5a7060;
+
+  --border-color: #bfccbf;
+
+  --accent-primary:     #0a6e2e;   /* darker green readable on light bg     */
+  --accent-primary-dim: #085424;
+
+  --accent-green:     #0a6e2e;
+  --accent-green-dim: #085424;
+  --accent-green-bg:  #dff5e6;
+  --accent-red:       #c41a1a;
+  --accent-red-dim:   #9e1515;
+  --accent-red-bg:    #fdeaea;
+
   color-scheme: light;
 }
 
@@ -93,10 +159,10 @@ body {
   outline-offset: 2px;
 }
 
-/* Selection */
+/* Selection — phosphor-green highlight, dark readable text */
 ::selection {
-  background-color: var(--color-accent);
-  color: white;
+  background-color: var(--color-pass);
+  color: var(--color-ink);
 }
 
 /* Scrollbar */
@@ -115,10 +181,17 @@ body {
   background: var(--color-mute-4);
 }
 
-/* Hero gradient text — dark mode: pale-paper → mute-5 contrast works on dark bg.
-   Light mode: both endpoints are near-invisible, so fall back to solid ink. */
+/* ─── Hero gradient text ────────────────────────────────────────────────────
+ * Dark (default): phosphor-green → cool neutral, evokes oscilloscope trace.
+ * Light: falls back to solid near-black — gradient is invisible on paper.
+ * -------------------------------------------------------------------------- */
 .hero-gradient-text {
-  background: linear-gradient(135deg, var(--color-paper) 0%, var(--color-mute-5) 100%);
+  background: linear-gradient(
+    135deg,
+    var(--color-pass) 0%,
+    var(--color-paper) 55%,
+    var(--color-mute-5) 100%
+  );
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -127,9 +200,73 @@ body {
 :root.light .hero-gradient-text {
   background: none;
   -webkit-background-clip: unset;
-  -webkit-text-fill-color: var(--color-ink);
+  -webkit-text-fill-color: #0d1a10;
   background-clip: unset;
-  color: var(--color-ink);
+  color: #0d1a10;
+}
+
+/* ─── Oscilloscope grid overlay ─────────────────────────────────────────────
+ * Apply .cuit-grid to any container that should read as an instrument panel.
+ * The grid is a subtle repeating crosshatch — 40px major / 8px minor.
+ * Scanlines variant: .cuit-scanlines adds a CRT-style horizontal band effect.
+ * -------------------------------------------------------------------------- */
+.cuit-grid {
+  background-image:
+    /* major grid lines */
+    linear-gradient(to right,  rgb(26 255 110 / 0.04) 1px, transparent 1px),
+    linear-gradient(to bottom, rgb(26 255 110 / 0.04) 1px, transparent 1px),
+    /* minor grid lines */
+    linear-gradient(to right,  rgb(26 255 110 / 0.02) 1px, transparent 1px),
+    linear-gradient(to bottom, rgb(26 255 110 / 0.02) 1px, transparent 1px);
+  background-size:
+    40px 40px,
+    40px 40px,
+    8px  8px,
+    8px  8px;
+  background-position: center center;
+}
+
+.cuit-scanlines::after {
+  content: "";
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background: repeating-linear-gradient(
+    to bottom,
+    transparent           0px,
+    transparent           3px,
+    rgb(0 0 0 / 0.12)     3px,
+    rgb(0 0 0 / 0.12)     4px
+  );
+  border-radius: inherit;
+}
+
+/* ─── Pass / Fail badge utilities ──────────────────────────────────────────
+ * Semantic badge classes wired to the brand accent pair.
+ * -------------------------------------------------------------------------- */
+.badge-pass {
+  color: var(--accent-green);
+  background-color: var(--accent-green-bg);
+  border: 1px solid color-mix(in srgb, var(--accent-green) 25%, transparent);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  padding: 0.15em 0.5em;
+  border-radius: var(--radius-sm);
+}
+
+.badge-fail {
+  color: var(--accent-red);
+  background-color: var(--accent-red-bg);
+  border: 1px solid color-mix(in srgb, var(--accent-red) 25%, transparent);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  padding: 0.15em 0.5em;
+  border-radius: var(--radius-sm);
 }
 
 /* Reduced motion */
