@@ -169,8 +169,17 @@ export async function chat(
  * `null` (no throw) when `AZURE_OPENAI_API_KEY` is unset so callers can degrade
  * gracefully. The key is read from the environment only — never hardcoded.
  */
+/**
+ * Browser-safe env access: `process` does not exist in a browser bundle, so
+ * referencing `process.env` directly throws "process is not defined". Guard it
+ * so the dashboard degrades gracefully client-side instead of erroring.
+ */
+function readEnv(): Record<string, string | undefined> {
+  return typeof process !== 'undefined' && process.env ? process.env : {};
+}
+
 export function createAzureClientFromEnv(
-  env: NodeJS.ProcessEnv = process.env,
+  env: Record<string, string | undefined> = readEnv(),
 ): LlmClient | null {
   const apiKey = env.AZURE_OPENAI_API_KEY;
   if (!apiKey) return null;
