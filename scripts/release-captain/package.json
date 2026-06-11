@@ -1,0 +1,15 @@
+{
+  "name": "@cuit/release-captain-script",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node run.mjs"
+  },
+  "dependencies": {
+    "semver": "7.6.3"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

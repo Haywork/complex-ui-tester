@@ -1,0 +1,548 @@
+name: readme-truth-sentinel
+
+# Weekly maturity-diff: greps the repo for stale status claims, placeholder
+# literals, and doc claims with no backing code. Posts findings as a GitHub issue.
+#
+# Trigger: every Monday at 08:00 UTC (weekly cadence).
+# Manual trigger: workflow_dispatch for on-demand runs.
+#
+# Required repository secret (Settings → Secrets and variables → Actions):
+#   GH_ISSUE_TOKEN — a fine-grained PAT with:
+#                    - Contents: read
+#                    - Issues:   read + write
+#                    scoped to this repository only.
+#                    (The default GITHUB_TOKEN also works if issue write
+#                     permission is enabled for Actions in repo settings.)
+#
+# Stack: Node 20 + pnpm (matches the rest of this repo's CI).
+# The audit step runs a self-contained Node script — no external runtime.
+
+on:
+  schedule:
+    - cron: "0 8 * * 1"   # Monday 08:00 UTC
+  workflow_dispatch: {}    # manual trigger from the Actions tab
+
+concurrency:
+  group: readme-truth-sentinel
+  cancel-in-progress: true  # only one audit run at a time
+
+jobs:
+  audit:
+    name: maturity-diff audit
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      issues: write        # needed to create / comment on issues
+
+    steps:
+      - name: Checkout repo (full history for blame context)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Setup Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20.20.1"
+          # No cache needed — the audit script has no pnpm deps of its own.
+
+      # -----------------------------------------------------------------
+      # AUDIT STEP
+      #
+      # This script implements the three-category check described in
+      # .claude/agents/readme-truth-sentinel/AGENT.md.
+      #
+      # It is intentionally self-contained (no npm install required) so
+      # that the job stays fast and dependency-free.
+      #
+      # Output: writes findings to $GITHUB_OUTPUT as a multiline string,
+      # then the next step posts them to a GitHub issue via the gh CLI.
+      # -----------------------------------------------------------------
+      - name: Run maturity-diff audit
+        id: audit
+        env:
+          GH_TOKEN: ${{ secrets.GH_ISSUE_TOKEN || secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_SHA: ${{ github.sha }}
+        run: |
+          node --input-type=module << 'AUDIT_SCRIPT'
+          /**
+           * readme-truth-sentinel — maturity-diff audit script
+           *
+           * Three checks (see AGENT.md for full specification):
+           *   1. Stale status claims  — MaturityLadder "Shipping Now" items with no
+           *      backing package dir; README proof claims; SKILL.md status blocks;
+           *      past-due milestone dates.
+           *   2. Placeholder literals — TEST_NAME / ASSERT_PATH / bare TODO / TBD /
+           *      <insert / unfilled token vars in shipped output files.
+           *   3. Unbacked doc claims  — adapter list vs packages/; MCP tool refs;
+           *      CuitFunnelInstrument event dispatchers.
+           *
+           * Findings are written to AUDIT_FINDINGS env var for the next step.
+           */
+
+          import { readFileSync, existsSync, readdirSync } from "node:fs";
+          import { join, dirname, resolve } from "node:path";
+          import { writeFileSync } from "node:fs";
+
+          const ROOT = process.cwd();
+          const SHORT_SHA = (process.env.GITHUB_SHA || "unknown").slice(0, 7);
+          const TODAY = new Date().toISOString().slice(0, 10);
+
+          // ── helpers ──────────────────────────────────────────────────────────
+
+          function read(rel) {
+            const abs = join(ROOT, rel);
+            if (!existsSync(abs)) return null;
+            return readFileSync(abs, "utf-8");
+          }
+
+          function grepLines(content, pattern) {
+            if (!content) return [];
+            const re = typeof pattern === "string" ? new RegExp(pattern, "gi") : pattern;
+            return content.split("\n").map((line, i) => ({ line: i + 1, text: line }))
+              .filter(({ text }) => re.test(text) && !text.includes("readme-truth-sentinel: ignore"));
+          }
+
+          function pkgDirExists(name) {
+            return existsSync(join(ROOT, "proof-of-concept/packages", name));
+          }
+
+          const findings1 = []; // stale status claims
+          const findings2 = []; // placeholder literals
+          const findings3 = []; // unbacked doc claims
+
+          // ── CATEGORY 1: Stale status claims ──────────────────────────────────
+
+          // 1a. MaturityLadder "Shipping Now" items vs proof-of-concept packages
+          const maturitySrc = read("marketing-site/src/components/MaturityLadder.tsx");
+          const shippingNowItems = [
+            { text: "Deterministic harness",           pkg: "harness" },
+            { text: "Generalized spec-gen",            pkg: "spec-gen" },
+            { text: "Real spec execution",             pkg: "runner" },
+            { text: "Recorder with console",           pkg: "recorder" },
+            { text: "Local MCP shim",                  pkg: "mcp-local" },
+            { text: "2 adapters",                      pkg: null }, // checked separately below
+            { text: "/cuit-loop + /cuit-instrument",   pkg: null }, // checked via SKILL.md
+            { text: "AX envelopes",                    pkg: "harness" },
+          ];
+          for (const item of shippingNowItems) {
+            if (item.pkg && !pkgDirExists(item.pkg)) {
+              findings1.push({
+                file: "marketing-site/src/components/MaturityLadder.tsx",
+                range: "TIERS[0].items",
+                claim: `"${item.text}" labelled Shipping Now`,
+                finding: `No matching package at proof-of-concept/packages/${item.pkg}`,
+                severity: "warn",
+              });
+            }
+          }
+
+          // 1b. Adapter count "2 adapters: Jam + CUIT"
+          const jamExists = pkgDirExists("adapter-jam");
+          const cuitExists = pkgDirExists("adapter-cuit");
+          if (!jamExists || !cuitExists) {
+            findings1.push({
+              file: "marketing-site/src/components/MaturityLadder.tsx",
+              range: 'item "2 adapters: Jam + CUIT"',
+              claim: "2 adapters shipped",
+              finding: `adapter-jam: ${jamExists ? "present" : "MISSING"}, adapter-cuit: ${cuitExists ? "present" : "MISSING"}`,
+              severity: jamExists && cuitExists ? "info" : "warn",
+            });
+          }
+
+          // 1c. SKILL.md eval status blocks
+          const loopAssertions = read(".claude/skills/cuit-loop/evals/assertions.md");
+          const instrumentAssertions = read(".claude/skills/cuit-instrument/evals/assertions.md");
+          const loopResultsExist = existsSync(join(ROOT, ".claude/skills/cuit-loop/evals/results"));
+          const instrumentResultsExist = existsSync(join(ROOT, ".claude/skills/cuit-instrument/evals/results"));
+
+          if (loopAssertions) {
+            const statusLine = loopAssertions.split("\n").find(l => /^##\s*Status/i.test(l) || /not yet run/i.test(l));
+            const notYetRun = /not yet run/i.test(loopAssertions);
+            if (notYetRun && loopResultsExist) {
+              findings1.push({
+                file: ".claude/skills/cuit-loop/evals/assertions.md",
+                range: "Status section",
+                claim: "Status: Not yet run",
+                finding: "results/ directory exists — status block may be stale",
+                severity: "warn",
+              });
+            }
+            if (!notYetRun && !loopResultsExist) {
+              findings1.push({
+                file: ".claude/skills/cuit-loop/evals/assertions.md",
+                range: "Status section",
+                claim: "Status implies run completed",
+                finding: "No results/ directory found",
+                severity: "warn",
+              });
+            }
+          }
+
+          if (instrumentAssertions) {
+            const instrumentResultsIterDir = join(ROOT, ".claude/skills/cuit-instrument/evals/results");
+            const iterExists = existsSync(instrumentResultsIterDir);
+            // benchmark.json is referenced in iteration-1 results
+            const benchmarkExists = existsSync(join(ROOT, ".claude/skills/cuit-instrument/evals/results/iteration-1/benchmark.json"));
+            const notYetRun = /not yet run/i.test(instrumentAssertions);
+            if (notYetRun && benchmarkExists) {
+              findings1.push({
+                file: ".claude/skills/cuit-instrument/evals/assertions.md",
+                range: "Status section",
+                claim: "Status: Not yet run (or similar)",
+                finding: "results/iteration-1/benchmark.json exists — status may be stale",
+                severity: "info",
+              });
+            }
+          }
+
+          // 1d. Past-due milestone dates in docs/
+          const currentYear = new Date().getFullYear();
+          const currentMonth = new Date().getMonth() + 1; // 1-12
+          const quarterMonths = { Q1: 3, Q2: 6, Q3: 9, Q4: 12 };
+          const docsFiles = ["docs/01-product-spec.md", "docs/06-operations-sre.md", "README.md"];
+          for (const docFile of docsFiles) {
+            const content = read(docFile);
+            if (!content) continue;
+            // Match patterns like "Q3 2025" or "Q1 2026"
+            const qMatches = [...content.matchAll(/\b(Q[1-4])\s+(20\d{2})\b/g)];
+            for (const m of qMatches) {
+              const q = m[1];
+              const year = parseInt(m[2], 10);
+              const endMonth = quarterMonths[q];
+              const isPastDue = year < currentYear || (year === currentYear && endMonth < currentMonth);
+              if (isPastDue) {
+                const lineNum = content.slice(0, m.index).split("\n").length;
+                findings1.push({
+                  file: docFile,
+                  range: `line ~${lineNum}`,
+                  claim: `Milestone target ${q} ${year}`,
+                  finding: "Quarter has passed — verify whether milestone shipped",
+                  severity: "info",
+                });
+              }
+            }
+          }
+
+          // ── CATEGORY 2: Placeholder literals ─────────────────────────────────
+
+          const SHIPPED_PATHS = [
+            "docs",
+            "marketing-site/src",
+            ".claude/skills",
+          ];
+          const PLACEHOLDER_PATTERNS = [
+            { pat: /\bTEST_NAME\b/, label: "TEST_NAME" },
+            { pat: /\bASSERT_PATH\b/, label: "ASSERT_PATH" },
+            // TODO/TBD only if NOT inside a code comment leader
+            { pat: /(?<!<!--\s*)(^|\s)TODO[: ]/m, label: "TODO (non-comment)" },
+            { pat: /(?<!<!--\s*)(^|\s)TBD\b/, label: "TBD" },
+            { pat: /<insert\b/i, label: "<insert ...> template marker" },
+            { pat: /\bYOUR_TENANT_TOKEN\b/, label: "YOUR_TENANT_TOKEN placeholder" },
+            { pat: /\bYOUR_API_KEY\b/, label: "YOUR_API_KEY placeholder" },
+          ];
+
+          // Collect shipped files to scan
+          function collectFiles(relDir, exts = [".md", ".tsx", ".ts", ".js"]) {
+            const abs = join(ROOT, relDir);
+            if (!existsSync(abs)) return [];
+            const results = [];
+            function walk(dir) {
+              let entries;
+              try { entries = readdirSync(dir, { withFileTypes: true }); } catch { return; }
+              for (const e of entries) {
+                const full = join(dir, e.name);
+                if (e.isDirectory()) {
+                  if (["node_modules", ".next", "dist", "__pycache__"].includes(e.name)) continue;
+                  walk(full);
+                } else if (exts.some(x => e.name.endsWith(x))) {
+                  results.push(full);
+                }
+              }
+            }
+            walk(abs);
+            return results;
+          }
+
+          const IGNORE_DIRS_FOR_PLACEHOLDERS = [
+            "proof-of-concept/fixtures",
+            ".github/ISSUE_TEMPLATE",
+          ];
+
+          for (const shippedPath of SHIPPED_PATHS) {
+            const files = collectFiles(shippedPath);
+            for (const absFile of files) {
+              const rel = absFile.replace(ROOT + "/", "");
+              // Skip explicitly excluded dirs
+              if (IGNORE_DIRS_FOR_PLACEHOLDERS.some(d => rel.startsWith(d))) continue;
+              const content = readFileSync(absFile, "utf-8");
+              for (const { pat, label } of PLACEHOLDER_PATTERNS) {
+                const lines = grepLines(content, pat);
+                for (const { line, text } of lines) {
+                  findings2.push({
+                    file: rel,
+                    line,
+                    literal: label,
+                    context: text.trim().slice(0, 120),
+                  });
+                }
+              }
+            }
+          }
+
+          // ── CATEGORY 3: Unbacked doc claims ──────────────────────────────────
+
+          // 3a. Adapter spec vs packages/
+          const adapterSpec = read("docs/10-adapter-spec.md");
+          const namedAdapters = [
+            { name: "Jam",           pkg: "adapter-jam" },
+            { name: "LogRocket",     pkg: "adapter-logrocket" },
+            { name: "Sentry Replay", pkg: "adapter-sentry" },
+            { name: "FullStory",     pkg: "adapter-fullstory" },
+            { name: "Datadog RUM",   pkg: "adapter-datadog" },
+          ];
+          for (const { name, pkg } of namedAdapters) {
+            if (adapterSpec && adapterSpec.includes(name)) {
+              const backed = pkgDirExists(pkg);
+              if (!backed) {
+                findings3.push({
+                  doc: "docs/10-adapter-spec.md",
+                  claim: `Adapter "${name}" described in spec`,
+                  backingExpected: `proof-of-concept/packages/${pkg}/`,
+                  backed: "no",
+                });
+              }
+            }
+          }
+
+          // 3b. cuit-instrument SKILL.md MCP tool references
+          const instrumentSkill = read(".claude/skills/cuit-instrument/SKILL.md");
+          const mcpLocalSrc = join(ROOT, "proof-of-concept/packages/mcp-local/src");
+          const mcpLocalExists = existsSync(mcpLocalSrc);
+          let mcpLocalContent = "";
+          if (mcpLocalExists) {
+            try {
+              // Read all .ts files under mcp-local/src
+              function collectTs(dir) {
+                let out = "";
+                const entries = readdirSync(dir, { withFileTypes: true });
+                for (const e of entries) {
+                  const full = join(dir, e.name);
+                  if (e.isDirectory()) out += collectTs(full);
+                  else if (e.name.endsWith(".ts")) out += readFileSync(full, "utf-8") + "\n";
+                }
+                return out;
+              }
+              mcpLocalContent = collectTs(mcpLocalSrc);
+            } catch {}
+          }
+
+          const mcpTools = [
+            "cuit__detect_app_shape",
+            "cuit__propose_instrumentation",
+            "cuit__verify_session_round_trip",
+          ];
+          for (const tool of mcpTools) {
+            if (instrumentSkill && instrumentSkill.includes(tool)) {
+              const backed = mcpLocalContent.includes(tool);
+              if (!backed) {
+                findings3.push({
+                  doc: ".claude/skills/cuit-instrument/SKILL.md",
+                  claim: `MCP tool "${tool}" referenced in skill`,
+                  backingExpected: "proof-of-concept/packages/mcp-local/src/ (any .ts file)",
+                  backed: "no",
+                });
+              }
+            }
+          }
+
+          // 3c. cuit-loop SKILL.md package references
+          const loopSkill = read(".claude/skills/cuit-loop/SKILL.md");
+          const loopPkgs = ["spec-gen", "harness", "runner"];
+          for (const pkg of loopPkgs) {
+            if (loopSkill && loopSkill.includes(`@cuit/${pkg}`)) {
+              if (!pkgDirExists(pkg)) {
+                findings3.push({
+                  doc: ".claude/skills/cuit-loop/SKILL.md",
+                  claim: `Package @cuit/${pkg} referenced`,
+                  backingExpected: `proof-of-concept/packages/${pkg}/`,
+                  backed: "no",
+                });
+              }
+            }
+          }
+
+          // 3d. CuitFunnelInstrument custom events vs callers
+          const instrumentedEvents = [
+            "cuit:signupFormStarted",
+            "cuit:signupTokenIssued",
+            "cuit:quickstartCopyClicked",
+            "cuit:exampleExpanded",
+          ];
+          const marketingSrc = join(ROOT, "marketing-site/src");
+          let allMarketingTs = "";
+          if (existsSync(marketingSrc)) {
+            const files = collectFiles("marketing-site/src", [".tsx", ".ts"]);
+            for (const f of files) {
+              if (!f.includes("CuitFunnelInstrument")) { // exclude the listener file itself
+                allMarketingTs += readFileSync(f, "utf-8") + "\n";
+              }
+            }
+          }
+          for (const evt of instrumentedEvents) {
+            const dispatched = allMarketingTs.includes(`"${evt}"`) || allMarketingTs.includes(`'${evt}'`);
+            if (!dispatched) {
+              findings3.push({
+                doc: "marketing-site/src/cuit/CuitFunnelInstrument.tsx",
+                claim: `Listens for custom event "${evt}"`,
+                backingExpected: "dispatchEvent call in marketing-site/src (excluding CuitFunnelInstrument.tsx)",
+                backed: "no",
+              });
+            }
+          }
+
+          // ── Build report ──────────────────────────────────────────────────────
+
+          function tableRow(cells) {
+            return "| " + cells.map(c => String(c).replace(/\|/g, "\\|")).join(" | ") + " |";
+          }
+
+          let body = `## Maturity diff — ${TODAY}\n\n`;
+          body += `Run by: readme-truth-sentinel (automated)\n`;
+          body += `Repo: ${process.env.GITHUB_REPOSITORY || "complex-ui-tester"} @ ${SHORT_SHA}\n\n`;
+          body += `---\n\n`;
+
+          // Cat 1
+          body += `### Category 1 — Stale status claims\n\n`;
+          if (findings1.length === 0) {
+            body += `_No stale status claims detected._\n\n`;
+          } else {
+            body += `| File | Range | Claim | Finding | Severity |\n`;
+            body += `|------|-------|-------|---------|----------|\n`;
+            for (const f of findings1) {
+              body += tableRow([f.file, f.range, f.claim, f.finding, f.severity]) + "\n";
+            }
+            body += "\n";
+          }
+
+          // Cat 2
+          body += `### Category 2 — Placeholder literals\n\n`;
+          if (findings2.length === 0) {
+            body += `_No placeholder literals detected._\n\n`;
+          } else {
+            body += `| File | Line | Literal | Context |\n`;
+            body += `|------|------|---------|---------|\n`;
+            for (const f of findings2) {
+              body += tableRow([f.file, f.line, f.literal, f.context]) + "\n";
+            }
+            body += "\n";
+          }
+
+          // Cat 3
+          body += `### Category 3 — Unbacked doc claims\n\n`;
+          if (findings3.length === 0) {
+            body += `_No unbacked doc claims detected._\n\n`;
+          } else {
+            body += `| Doc | Claim | Backing expected at | Backed? |\n`;
+            body += `|-----|-------|---------------------|---------|\n`;
+            for (const f of findings3) {
+              body += tableRow([f.doc, f.claim, f.backingExpected, f.backed]) + "\n";
+            }
+            body += "\n";
+          }
+
+          const total = findings1.length + findings2.length + findings3.length;
+          const warnCount = findings1.filter(f => f.severity === "warn").length;
+
+          body += `---\n\n`;
+          body += `### Summary\n\n`;
+          body += `- Stale status claims: ${findings1.length} (${warnCount} warn, ${findings1.length - warnCount} info)\n`;
+          body += `- Placeholder literals: ${findings2.length}\n`;
+          body += `- Unbacked doc claims: ${findings3.length}\n\n`;
+
+          if (total === 0) {
+            body += `All three counts are 0 — no drift detected this week.\n\n`;
+          }
+
+          body += `---\n\n`;
+          body += `*This issue is auto-generated by the \`readme-truth-sentinel\` agent.*  \n`;
+          body += `*To silence a specific finding permanently, add a*  \n`;
+          body += `*\`<!-- readme-truth-sentinel: ignore -->\` comment on the relevant line.*\n`;
+
+          // Write outputs for the next step
+          const outputFile = process.env.GITHUB_OUTPUT;
+          const escapedBody = body.replace(/%/g, "%25").replace(/\n/g, "%0A").replace(/\r/g, "%0D");
+          const fs = await import("node:fs/promises");
+          await fs.appendFile(outputFile, `report_body<<EOF_REPORT\n${body}\nEOF_REPORT\n`);
+          await fs.appendFile(outputFile, `total_findings=${total}\n`);
+          await fs.appendFile(outputFile, `today=${TODAY}\n`);
+
+          console.log(`Audit complete. Cat1: ${findings1.length}, Cat2: ${findings2.length}, Cat3: ${findings3.length}. Total: ${total}`);
+          AUDIT_SCRIPT
+
+      # -----------------------------------------------------------------
+      # ISSUE STEP
+      #
+      # Uses the gh CLI (pre-installed on ubuntu-latest runners) to:
+      #   - Search for an existing open issue with our title prefix.
+      #   - If found and findings > 0: add a comment with the new report.
+      #   - If found and findings = 0: close it with an "all clear" comment.
+      #   - If not found and findings > 0: open a new issue.
+      #   - If not found and findings = 0: do nothing.
+      # -----------------------------------------------------------------
+      - name: Post findings to GitHub Issues
+        env:
+          GH_TOKEN: ${{ secrets.GH_ISSUE_TOKEN || secrets.GITHUB_TOKEN }}
+          REPORT_BODY: ${{ steps.audit.outputs.report_body }}
+          TOTAL_FINDINGS: ${{ steps.audit.outputs.total_findings }}
+          TODAY: ${{ steps.audit.outputs.today }}
+          REPO: ${{ github.repository }}
+        run: |
+          TITLE="readme-truth-sentinel: maturity-diff ${TODAY}"
+          LABEL="automation"
+
+          # Find an existing open issue with this agent's title prefix.
+          EXISTING_NUMBER=$(gh issue list \
+            --repo "$REPO" \
+            --state open \
+            --search "readme-truth-sentinel in:title" \
+            --json number,title \
+            --jq '.[0].number // empty' 2>/dev/null || true)
+
+          if [ "$TOTAL_FINDINGS" -eq "0" ]; then
+            echo "No findings this week."
+            if [ -n "$EXISTING_NUMBER" ]; then
+              echo "Closing existing issue #${EXISTING_NUMBER} — all clear."
+              gh issue comment "$EXISTING_NUMBER" --repo "$REPO" \
+                --body "All clear — no drift detected as of ${TODAY}. Closing." 2>/dev/null || true
+              gh issue close "$EXISTING_NUMBER" --repo "$REPO" 2>/dev/null || true
+            fi
+          else
+            if [ -n "$EXISTING_NUMBER" ]; then
+              echo "Adding comment to existing issue #${EXISTING_NUMBER}."
+              gh issue comment "$EXISTING_NUMBER" --repo "$REPO" \
+                --body "$REPORT_BODY" 2>/dev/null || true
+              # Re-title the issue with the current date
+              gh issue edit "$EXISTING_NUMBER" --repo "$REPO" \
+                --title "$TITLE" 2>/dev/null || true
+            else
+              echo "Opening new issue."
+              gh issue create \
+                --repo "$REPO" \
+                --title "$TITLE" \
+                --body "$REPORT_BODY" \
+                --label "$LABEL" 2>/dev/null || \
+              gh issue create \
+                --repo "$REPO" \
+                --title "$TITLE" \
+                --body "$REPORT_BODY" 2>/dev/null || true
+              # ^ second attempt without --label in case the label doesn't exist yet
+            fi
+          fi

@@ -1,0 +1,319 @@
+# loop-dogfood-bot — nightly funnel-loop closer + real transcript factory
+#
+# What it does:
+#   1. Launches a headless Playwright browser against the live marketing site
+#      with ?cuitRecorder=1 to activate window.__cuitDebug.
+#   2. Drives three instrumented funnel interactions:
+#        - signup-form   (/signup)    — form focus → fill → submit → token issued
+#        - quickstart-copy (/quickstart) — copy-token button
+#        - examples-expand (/quickstart) — REST-fallback <details> toggle
+#   3. Wraps the captured state snapshots into CUIT-native session envelopes.
+#   4. Runs close_loop via the local MCP shim (proof-of-concept/packages/mcp-local).
+#   5. For GREEN specs: writes session JSON to examples/funnel-sessions/ and
+#      opens a PR to lock in the regression gate.
+#   6. For RED specs: opens a PR flagging the funnel regression with mismatch detail.
+#
+# This agent is true dogfood: the product (CUIT) testing the product (the
+# marketing site that describes CUIT). No business data. No customer data.
+#
+# Required secrets (set under Settings → Secrets and variables → Actions):
+#   DOGFOOD_GH_TOKEN  — fine-grained PAT with:
+#                         contents: write, pull-requests: write
+#                         scoped to this repo only.
+#                       Used for git push and gh pr create.
+#                       Keep separate from GITHUB_TOKEN so PR-protection rules
+#                       can require human review regardless of bot authorship.
+#
+# Optional secrets:
+#   DOGFOOD_ANTHROPIC_API_KEY  — if a future iteration uses Claude headlessly
+#                                 to triage RED output; unused in the current
+#                                 rule-based close_loop implementation.
+
+name: loop-dogfood-bot
+
+on:
+  schedule:
+    # 02:00 UTC every night — after Vercel deploys settle, before EU working hours.
+    - cron: "0 2 * * *"
+
+  # Allow manual runs for debugging and for first-time verification.
+  workflow_dispatch:
+    inputs:
+      interaction:
+        description: "Which interaction to record (signup-form | quickstart-copy | examples-expand | all)"
+        required: false
+        default: "all"
+      dry_run:
+        description: "Dry run — record and run close_loop but do not open PRs or write files"
+        required: false
+        default: "false"
+
+concurrency:
+  # Only one dogfood run at a time. If a nightly is still running when the
+  # next one fires, cancel the in-flight run. This prevents duplicate PRs.
+  group: loop-dogfood-bot
+  cancel-in-progress: true
+
+jobs:
+  dogfood:
+    name: record funnel sessions + close loop
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    permissions:
+      # Needed to push the branch and open the PR.
+      contents: write
+      pull-requests: write
+
+    env:
+      # The live marketing site. No staging URL — this is a dogfood run
+      # against the actual published surface.
+      SITE_URL: "https://complex-ui-tester.vercel.app"
+      # Activate window.__cuitDebug in production builds.
+      CUIT_QUERY_PARAM: "cuitRecorder=1"
+      # Nightly run date for branch names, PR titles, and file names.
+      RUN_DATE: ""   # set in a step below via $GITHUB_ENV
+
+    steps:
+      # ── 0. Setup ──────────────────────────────────────────────────────────
+
+      - name: Set RUN_DATE
+        run: echo "RUN_DATE=$(date -u +%Y-%m-%d)" >> "$GITHUB_ENV"
+
+      - uses: actions/checkout@v4
+        with:
+          # Use the bot token so the pushed branch is not gated by branch-
+          # protection rules that block the default GITHUB_TOKEN.
+          token: ${{ secrets.DOGFOOD_GH_TOKEN }}
+          fetch-depth: 1
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20.20.1"
+          cache: "pnpm"
+          # The runner script lives under proof-of-concept/ but also pulls
+          # marketing-site devDeps for Playwright.
+          cache-dependency-path: |
+            proof-of-concept/pnpm-lock.yaml
+            marketing-site/pnpm-lock.yaml
+
+      - name: Install proof-of-concept workspace deps
+        working-directory: proof-of-concept
+        run: pnpm install --frozen-lockfile
+
+      - name: Install marketing-site deps (Playwright)
+        working-directory: marketing-site
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Playwright browsers (chromium only)
+        working-directory: marketing-site
+        run: pnpm exec playwright install --with-deps chromium
+
+      # ── 1. Build the local MCP shim ────────────────────────────────────
+      #
+      # close_loop is imported directly from TS via tsx — no subprocess.
+      # Build ensures the dist/ types exist for any import that needs them.
+
+      - name: Build mcp-local
+        working-directory: proof-of-concept
+        run: pnpm -F @cuit/mcp-local run build
+
+      - name: Build spec-gen (dependency of mcp-local)
+        working-directory: proof-of-concept
+        run: pnpm -F @cuit/spec-gen run build
+
+      - name: Build types (dependency of spec-gen)
+        working-directory: proof-of-concept
+        run: pnpm -F @cuit/types run build
+
+      - name: Build adapter-jam (dependency of mcp-local)
+        working-directory: proof-of-concept
+        run: pnpm -F @cuit/adapter-jam run build
+
+      # ── 2. Check for existing open PRs ────────────────────────────────
+      #
+      # Avoid duplicate PRs if a previous nightly left an open one.
+
+      - name: Check for existing dogfood PRs from today
+        id: check_prs
+        env:
+          GH_TOKEN: ${{ secrets.DOGFOOD_GH_TOKEN }}
+        run: |
+          OPEN=$(gh pr list \
+            --repo "$GITHUB_REPOSITORY" \
+            --search "dogfood in:title ${{ env.RUN_DATE }}" \
+            --state open \
+            --json number \
+            --jq 'length')
+          echo "open_count=$OPEN" >> "$GITHUB_OUTPUT"
+          if [ "$OPEN" -gt "0" ]; then
+            echo "::notice title=loop-dogfood-bot::$OPEN dogfood PR(s) already open for ${{ env.RUN_DATE }}. Skipping run."
+          fi
+
+      # ── 3. Run the dogfood recorder script ────────────────────────────
+      #
+      # The script (scripts/agents/loop-dogfood-bot/run.ts) is the main
+      # implementation. It:
+      #   - Opens Playwright with ?cuitRecorder=1
+      #   - Drives each funnel interaction
+      #   - Reads window.__cuitDebug.getState() after each interaction
+      #   - Builds CUIT session envelopes
+      #   - Calls closeLoopTool({ session }) from mcp-local
+      #   - Writes results to /tmp/dogfood-results.json
+      #
+      # PLACEHOLDER: the script does not exist yet. The step below is
+      # clearly marked as a placeholder. A developer must create
+      # scripts/agents/loop-dogfood-bot/run.ts that implements the
+      # behaviour described in .claude/agents/loop-dogfood-bot/AGENT.md.
+      # The script must exit 0 for tool errors (those are annotated, not
+      # failed); exit 1 only for unexpected fatal errors.
+
+      - name: Run dogfood recorder + close_loop
+        if: steps.check_prs.outputs.open_count == '0'
+        id: dogfood_run
+        working-directory: proof-of-concept
+        env:
+          SITE_URL: ${{ env.SITE_URL }}
+          CUIT_QUERY_PARAM: ${{ env.CUIT_QUERY_PARAM }}
+          RUN_DATE: ${{ env.RUN_DATE }}
+          INTERACTION: ${{ github.event.inputs.interaction || 'all' }}
+          DRY_RUN: ${{ github.event.inputs.dry_run || 'false' }}
+          RESULTS_PATH: /tmp/dogfood-results.json
+          # Path for session JSON exports (relative to repo root).
+          SESSION_EXPORT_DIR: ${{ github.workspace }}/examples/funnel-sessions
+        # ── PLACEHOLDER ──────────────────────────────────────────────────
+        # Replace this echo with: pnpm tsx ../scripts/agents/loop-dogfood-bot/run.ts
+        #
+        # The placeholder writes a minimal results file so the downstream
+        # steps do not hard-fail during the bootstrap period before the
+        # script is written.
+        run: |
+          echo "::warning title=loop-dogfood-bot::run.ts does not exist yet. This is a placeholder step. Create scripts/agents/loop-dogfood-bot/run.ts to implement the dogfood recorder."
+          mkdir -p "$SESSION_EXPORT_DIR"
+          cat > "$RESULTS_PATH" <<'EOF'
+          {
+            "runDate": "${{ env.RUN_DATE }}",
+            "interactions": [
+              { "slug": "signup-form",       "result": "SKIP", "reason": "script not yet implemented", "mismatches": [] },
+              { "slug": "quickstart-copy",   "result": "SKIP", "reason": "script not yet implemented", "mismatches": [] },
+              { "slug": "examples-expand",   "result": "SKIP", "reason": "script not yet implemented", "mismatches": [] }
+            ],
+            "sessionFiles": [],
+            "dryRun": false
+          }
+          EOF
+        # ── END PLACEHOLDER ───────────────────────────────────────────────
+
+      # ── 4. Publish session files + open PR ────────────────────────────
+
+      - name: Evaluate results and open PRs
+        if: steps.check_prs.outputs.open_count == '0' && github.event.inputs.dry_run != 'true'
+        env:
+          GH_TOKEN: ${{ secrets.DOGFOOD_GH_TOKEN }}
+          RESULTS_PATH: /tmp/dogfood-results.json
+          RUN_DATE: ${{ env.RUN_DATE }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        run: |
+          node - <<'EVALUATE_SCRIPT'
+          const fs = require('fs');
+          const path = require('path');
+          const { execSync } = require('child_process');
+
+          const resultsRaw = fs.readFileSync(process.env.RESULTS_PATH, 'utf8');
+          const results = JSON.parse(resultsRaw);
+          const date = process.env.RUN_DATE;
+          const repo = process.env.GITHUB_REPOSITORY;
+
+          // Summarise for the PR body table.
+          const tableRows = results.interactions.map(i =>
+            `| ${i.slug} | ${i.result} | ${i.mismatches?.length ?? 'n/a'} |`
+          ).join('\n');
+
+          const sessionFilesList = (results.sessionFiles ?? [])
+            .map(f => `- \`${f}\``)
+            .join('\n') || '_none written (placeholder run)_';
+
+          // Determine PR type: regression if any RED, else lock-in if any GREEN.
+          const hasRed   = results.interactions.some(i => i.result === 'RED');
+          const hasGreen = results.interactions.some(i => i.result === 'GREEN');
+
+          if (!hasRed && !hasGreen) {
+            console.log('No GREEN or RED interactions. Nothing to PR.');
+            process.exit(0);
+          }
+
+          const branchSuffix = hasRed ? 'regression' : 'lock-in';
+          const branch = `dogfood/${branchSuffix}-${date}`;
+          const prTitle = hasRed
+            ? `dogfood(regression): funnel interaction broken [${date}]`
+            : `dogfood(funnel): lock in regression gates [${date}]`;
+
+          // Commit session files if any were written.
+          const sessionDir = path.join(process.env.GITHUB_WORKSPACE, 'examples', 'funnel-sessions');
+          let gitStatus = '';
+          try {
+            gitStatus = execSync('git status --porcelain', { encoding: 'utf8' });
+          } catch { /* ignore */ }
+
+          if (gitStatus.trim()) {
+            execSync(`git config user.email "loop-dogfood-bot@cuit.dev"`);
+            execSync(`git config user.name "loop-dogfood-bot"`);
+            execSync(`git checkout -b "${branch}"`);
+            execSync(`git add examples/funnel-sessions/ || true`);
+            execSync(`git commit -m "dogfood(${branchSuffix}): funnel sessions ${date}\n\nGenerated by loop-dogfood-bot nightly run.\nNo customer data."`);
+            execSync(`git push origin "${branch}"`);
+          } else {
+            // Nothing changed on disk (placeholder run or dry SKIP) — still
+            // create a no-file PR so humans are notified of the run outcome.
+            execSync(`git config user.email "loop-dogfood-bot@cuit.dev"`);
+            execSync(`git config user.name "loop-dogfood-bot"`);
+            execSync(`git checkout -b "${branch}"`);
+            // Empty commit so gh pr create has something to point at.
+            execSync(`git commit --allow-empty -m "dogfood(${branchSuffix}): ${date} [empty — no session files]"`);
+            execSync(`git push origin "${branch}"`);
+          }
+
+          const prBody = `## Dogfood run — ${date}
+
+          Agent: loop-dogfood-bot
+          Trigger: nightly 2am UTC (agent-loop-dogfood-bot.yml)
+
+          ### Interactions recorded
+
+          | Interaction | Result | Mismatches |
+          |---|---|---|
+          ${tableRows}
+
+          ### Session files written
+
+          ${sessionFilesList}
+
+          ---
+          This PR was opened by loop-dogfood-bot. Review the spec and merge if GREEN.
+          For RED results, the marketing site has a regression — see the mismatch detail in the run log.
+
+          Workflow run: https://github.com/${repo}/actions/runs/${process.env.GITHUB_RUN_ID}
+          `;
+
+          // gh pr create writes to stdout; capture and log.
+          const prUrl = execSync(
+            `gh pr create --repo "${repo}" --title "${prTitle}" --body "${prBody.replace(/"/g, '\\"')}" --head "${branch}" --base main`,
+            { encoding: 'utf8' }
+          ).trim();
+
+          console.log(`PR opened: ${prUrl}`);
+          EVALUATE_SCRIPT
+
+      # ── 5. Upload run artifacts ────────────────────────────────────────
+
+      - name: Upload dogfood results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: dogfood-results-${{ env.RUN_DATE }}
+          path: /tmp/dogfood-results.json
+          retention-days: 14

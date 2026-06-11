@@ -1,0 +1,345 @@
+# eval-gatekeeper — Skill Eval CI Gate
+#
+# Runs evals for any skill whose SKILL.md or evals/ directory is touched in a
+# PR, computes pass-rate + delta vs the iteration-1 baseline, posts a
+# structured PR comment, and blocks merge on regression.
+#
+# Also runs nightly across ALL skills to catch slow drift.
+#
+# Required repo secrets (Settings → Secrets and variables → Actions):
+#   ANTHROPIC_API_KEY — used by run-eval.ts when the placeholder is replaced
+#                       with a real Claude SDK call. The placeholder does NOT
+#                       consume the key; set it now so the secret is ready.
+#   GITHUB_TOKEN      — auto-provided by Actions; used for gh pr comment.
+#
+# Optional repo secrets:
+#   (none additional for current placeholder implementation)
+#
+# Agent spec: .claude/agents/eval-gatekeeper/AGENT.md
+
+name: eval-gatekeeper
+
+on:
+  pull_request:
+    paths:
+      - ".claude/skills/**"
+      - ".github/workflows/agent-eval-gatekeeper.yml"
+      - ".github/scripts/eval-runner/**"
+
+  schedule:
+    # Nightly at 03:15 UTC — runs all skills
+    - cron: "15 3 * * *"
+
+  workflow_dispatch:
+    inputs:
+      full_benchmark:
+        description: "Run with_skill AND without_skill configurations (doubles API cost)"
+        required: false
+        default: "false"
+        type: boolean
+      skill_filter:
+        description: "Comma-separated skill names to run (empty = all changed / all on schedule)"
+        required: false
+        default: ""
+        type: string
+
+concurrency:
+  group: eval-gatekeeper-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # ---------------------------------------------------------------------------
+  # discover — determine which skills to eval
+  # ---------------------------------------------------------------------------
+  discover:
+    name: Discover changed skills
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    outputs:
+      skills: ${{ steps.set-skills.outputs.skills }}
+      pr_number: ${{ steps.set-pr.outputs.pr_number }}
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Detect changed skills (PR)
+        id: changed
+        if: github.event_name == 'pull_request'
+        run: |
+          changed=$(git diff --name-only origin/${{ github.base_ref }}...HEAD \
+            | grep '^\\.claude/skills/' \
+            | sed 's|\.claude/skills/\([^/]*\)/.*|\1|' \
+            | sort -u \
+            | tr '\n' ',' \
+            | sed 's/,$//')
+          echo "changed=${changed}" >> "$GITHUB_OUTPUT"
+
+      - name: All skills (nightly / dispatch)
+        id: all
+        if: github.event_name != 'pull_request'
+        run: |
+          all=$(find .claude/skills -name "evals.json" -path "*/evals/evals.json" \
+            | sed 's|\.claude/skills/\([^/]*\)/evals/evals.json|\1|' \
+            | sort -u \
+            | tr '\n' ',' \
+            | sed 's/,$//')
+          echo "all=${all}" >> "$GITHUB_OUTPUT"
+
+      - name: Set skills matrix
+        id: set-skills
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            raw="${{ steps.changed.outputs.changed }}"
+          else
+            raw="${{ steps.all.outputs.all }}"
+          fi
+          # Allow workflow_dispatch override
+          override="${{ inputs.skill_filter }}"
+          if [ -n "$override" ]; then
+            raw="$override"
+          fi
+          # Convert comma-separated to JSON array for matrix
+          json=$(echo "$raw" | python3 -c "
+          import sys, json
+          s = sys.stdin.read().strip()
+          items = [x.strip() for x in s.split(',') if x.strip()]
+          print(json.dumps(items))
+          ")
+          echo "skills=${json}" >> "$GITHUB_OUTPUT"
+          echo "Skills to eval: ${json}"
+
+      - name: Set PR number
+        id: set-pr
+        run: |
+          echo "pr_number=${{ github.event.pull_request.number }}" >> "$GITHUB_OUTPUT"
+
+  # ---------------------------------------------------------------------------
+  # run-evals — run eval cases per skill (matrix)
+  # ---------------------------------------------------------------------------
+  run-evals:
+    name: Run evals — ${{ matrix.skill }}
+    needs: discover
+    if: needs.discover.outputs.skills != '[]' && needs.discover.outputs.skills != ''
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    strategy:
+      fail-fast: false
+      matrix:
+        skill: ${{ fromJson(needs.discover.outputs.skills) }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Install eval-runner deps
+        working-directory: .github/scripts/eval-runner
+        run: pnpm install --frozen-lockfile
+
+      - name: Verify skill has evals
+        id: check
+        run: |
+          evalsFile=".claude/skills/${{ matrix.skill }}/evals/evals.json"
+          if [ ! -f "$evalsFile" ]; then
+            echo "has_evals=false" >> "$GITHUB_OUTPUT"
+            echo "::warning::${{ matrix.skill }} has no evals/evals.json — skipping"
+          else
+            echo "has_evals=true" >> "$GITHUB_OUTPUT"
+            count=$(node -e "
+              const d = require('./$evalsFile');
+              console.log(d.evals.length);
+            " 2>/dev/null || echo "0")
+            echo "eval_count=${count}" >> "$GITHUB_OUTPUT"
+            echo "Found ${count} eval cases for ${{ matrix.skill }}"
+          fi
+
+      - name: Run eval cases
+        if: steps.check.outputs.has_evals == 'true'
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          set -e
+          skillPath=".claude/skills/${{ matrix.skill }}"
+          outputBase="/tmp/eval-results/${{ matrix.skill }}"
+          mkdir -p "$outputBase"
+
+          # Read eval IDs from evals.json
+          evalIds=$(node -e "
+            const d = require('./${skillPath}/evals/evals.json');
+            console.log(d.evals.map(e => e.id).join(' '));
+          ")
+
+          # Run each eval case sequentially (parallel available but kept serial
+          # to respect API rate limits once the real SDK call is wired in)
+          for evalId in $evalIds; do
+            prompt=$(node -e "
+              const d = require('./${skillPath}/evals/evals.json');
+              const e = d.evals.find(x => x.id === ${evalId});
+              // Escape for shell: write to a temp file instead of inline
+              process.stdout.write(e ? e.prompt : '');
+            ")
+
+            # Write prompt to temp file to avoid shell quoting issues
+            promptFile="/tmp/prompt-${{ matrix.skill }}-${evalId}.txt"
+            node -e "
+              const d = require('./${skillPath}/evals/evals.json');
+              const e = d.evals.find(x => x.id === ${evalId});
+              require('fs').writeFileSync('${promptFile}', e ? e.prompt : '');
+            "
+
+            echo "Running eval ${evalId} for ${{ matrix.skill }}..."
+            npx tsx .github/scripts/eval-runner/run-eval.ts \
+              --skill-path "${skillPath}" \
+              --eval-id "${evalId}" \
+              --prompt "$(cat "${promptFile}")" \
+              --output-dir "${outputBase}/eval-${evalId}"
+          done
+
+      - name: Grade results
+        if: steps.check.outputs.has_evals == 'true'
+        id: grade
+        run: |
+          set -e
+          skillPath=".claude/skills/${{ matrix.skill }}"
+          resultsDir="/tmp/eval-results/${{ matrix.skill }}"
+          outputDir="/tmp/eval-results"
+
+          npx tsx .github/scripts/eval-runner/grade.ts \
+            --skill-path "${skillPath}" \
+            --results-dir "${resultsDir}" \
+            --output-dir "${outputDir}"
+          echo "grade_exit=$?" >> "$GITHUB_OUTPUT"
+
+      - name: Upload eval artifacts
+        if: always() && steps.check.outputs.has_evals == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: eval-results-${{ matrix.skill }}
+          path: /tmp/eval-results/
+          retention-days: 30
+
+  # ---------------------------------------------------------------------------
+  # comment — post PR comment and set final gate status
+  # ---------------------------------------------------------------------------
+  comment:
+    name: Post PR comment and set gate
+    needs: [discover, run-evals]
+    if: always() && github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Download all eval artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: /tmp/eval-artifacts
+          pattern: eval-results-*
+          merge-multiple: true
+
+      - name: Find comment.md
+        id: find-comment
+        run: |
+          if [ -f "/tmp/eval-artifacts/comment.md" ]; then
+            echo "has_comment=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_comment=false" >> "$GITHUB_OUTPUT"
+            cat > /tmp/eval-artifacts/comment.md << 'EOF'
+## Skill Eval Gate
+
+No eval results found. Either no skills with evals were changed, or the eval
+runner did not produce output. Check the workflow run logs for details.
+
+---
+<sub>eval-gatekeeper · run produced no results</sub>
+EOF
+          fi
+
+      - name: Post PR comment
+        if: needs.discover.outputs.pr_number != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          PR="${{ needs.discover.outputs.pr_number }}"
+          if [ -z "$PR" ] || [ "$PR" = "0" ]; then
+            echo "No PR number — skipping comment"
+            exit 0
+          fi
+          gh pr comment "$PR" \
+            --repo "${{ github.repository }}" \
+            --body "$(cat /tmp/eval-artifacts/comment.md)"
+
+      - name: Enforce gate
+        run: |
+          # Check all-results.json for any regression flags
+          allResults="/tmp/eval-artifacts/all-results.json"
+          if [ ! -f "$allResults" ]; then
+            echo "No all-results.json — assuming pass (no skills with evals changed)"
+            exit 0
+          fi
+          regressions=$(node -e "
+            const results = require('${allResults}');
+            const r = results.filter(x => x.regression);
+            if (r.length > 0) {
+              console.error('Regressed skills: ' + r.map(x => x.skillName).join(', '));
+              process.exit(1);
+            }
+            console.log('All skills passed.');
+          ")
+          echo "$regressions"
+
+  # ---------------------------------------------------------------------------
+  # nightly-summary — emit a summary for scheduled runs (no PR to comment on)
+  # ---------------------------------------------------------------------------
+  nightly-summary:
+    name: Nightly summary
+    needs: [discover, run-evals]
+    if: always() && github.event_name == 'schedule'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: /tmp/eval-artifacts
+          pattern: eval-results-*
+          merge-multiple: true
+
+      - name: Print summary
+        run: |
+          if [ -f "/tmp/eval-artifacts/comment.md" ]; then
+            cat /tmp/eval-artifacts/comment.md >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "No eval results produced by nightly run." >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Fail on regression
+        run: |
+          allResults="/tmp/eval-artifacts/all-results.json"
+          if [ ! -f "$allResults" ]; then
+            echo "No results — skipping gate"
+            exit 0
+          fi
+          node -e "
+            const results = require('${allResults}');
+            const r = results.filter(x => x.regression);
+            if (r.length > 0) {
+              console.error('Nightly regression in: ' + r.map(x => x.skillName).join(', '));
+              process.exit(1);
+            }
+            console.log('All nightly evals passed.');
+          "

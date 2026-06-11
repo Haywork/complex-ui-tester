@@ -1,0 +1,119 @@
+# release-captain — product CI agent
+#
+# Triggered on every merge to main.
+# Generates a changelog entry from conventional commits and audits the maturity
+# ladder (marketing-site/src/components/MaturityLadder.tsx + README.md) against
+# what actually ships in proof-of-concept/packages/. Opens a release PR; never
+# pushes to main directly.
+#
+# Required repo permissions:
+#   contents: write   — to push the release branch
+#   pull-requests: write — to open the PR
+#   issues: write     — gh pr create uses this
+#
+# The job runs a Node.js script (scripts/release-captain/run.mjs) as the
+# primary implementation step.  A clearly-marked placeholder step shows
+# where a headless Claude invocation would slot in if you later wire up
+# an ANTHROPIC_API_KEY; the script handles the full logic today without LLM
+# assistance so the pipeline works on day one.
+
+name: release-captain
+
+on:
+  push:
+    branches: [main]
+  # Allow manual runs for testing / re-auditing
+  workflow_dispatch: {}
+
+concurrency:
+  # One release-captain run at a time on main. If a run is already in
+  # flight, cancel the older one so the newest commit wins.
+  group: release-captain-main
+  cancel-in-progress: true
+
+jobs:
+  release-captain:
+    name: changelog + maturity audit + release PR
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+      # ── Checkout (full history needed for git log range) ──────────────────
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          # Use the default GITHUB_TOKEN — no extra secrets required.
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      # ── Node 20 + pnpm 9 ──────────────────────────────────────────────────
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          # Cache against the root lockfile if it exists; fall back to the
+          # proof-of-concept lockfile.
+          cache: "pnpm"
+          cache-dependency-path: |
+            proof-of-concept/pnpm-lock.yaml
+
+      # ── Install only the deps the script needs ────────────────────────────
+      # The release-captain script lives in scripts/release-captain/ and has
+      # its own package.json so it doesn't pollute the monorepo devDeps.
+      - name: Install release-captain script deps
+        run: pnpm install --frozen-lockfile
+        working-directory: scripts/release-captain
+
+      # ── Configure git identity ────────────────────────────────────────────
+      - name: Configure git
+        run: |
+          git config user.name  "release-captain[bot]"
+          git config user.email "release-captain[bot]@users.noreply.github.com"
+
+      # ── Resolve previous release tag ─────────────────────────────────────
+      - name: Resolve previous release tag
+        id: prev-tag
+        run: |
+          TAG=$(git tag --list 'v*' --sort=-version:refname | head -n 1)
+          echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
+          echo "Previous release tag: ${TAG:-<none>}"
+
+      # ── PLACEHOLDER: headless Claude step ─────────────────────────────────
+      # If you later want to drive this job with Claude (claude -p / SDK):
+      #   1. Add ANTHROPIC_API_KEY to repo secrets.
+      #   2. Replace the "Run release-captain script" step below with:
+      #
+      #      - name: Run release-captain (Claude headless)
+      #        env:
+      #          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+      #          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      #          PREV_RELEASE_TAG: ${{ steps.prev-tag.outputs.tag }}
+      #        run: |
+      #          npx -y @anthropic-ai/claude-code \
+      #            --model claude-sonnet-4-5 \
+      #            --max-turns 20 \
+      #            --system-prompt-file .claude/agents/release-captain/AGENT.md \
+      #            --print \
+      #            "Run the release-captain procedure for commit $GITHUB_SHA"
+      #
+      # Until that secret is wired up, the Node script below implements the
+      # full procedure directly (conventional-commit parser, maturity audit,
+      # gh pr create) with zero LLM dependency.
+      # ──────────────────────────────────────────────────────────────────────
+
+      # ── Run the release-captain Node script ──────────────────────────────
+      - name: Run release-captain script
+        id: captain
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PREV_RELEASE_TAG: ${{ steps.prev-tag.outputs.tag }}
+          GITHUB_SHA: ${{ github.sha }}
+          GITHUB_REF_NAME: ${{ github.ref_name }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        run: node scripts/release-captain/run.mjs
