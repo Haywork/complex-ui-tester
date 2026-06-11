@@ -161,10 +161,16 @@ function deriveAssert(
   // For a drag, the expected value must be derived from intent (preValue + delta),
   // NOT the unchanged post-snapshot value.
   if (interaction.shape === 'drag') {
+    // Baseline = the pre-interaction snapshot. The live recorder lands its
+    // first snapshot AT pointerdown (not strictly before it), so preEvents
+    // can be empty even on a healthy capture. Fall back to the post-window
+    // snapshots: we only reach here when NO state changed, so the post value
+    // equals the pre baseline and post + dx is still the correct intent.
     const preMap = buildSnapshotMap(preEvents);
-    if (preMap.size === 0) {
+    const baseMap = preMap.size > 0 ? preMap : buildSnapshotMap(postEvents);
+    if (baseMap.size === 0) {
       throw new Error(
-        'Cannot derive assert: no pre-interaction snapshots found and no state changed',
+        'Cannot derive assert: no snapshots found before or after the interaction. Ensure the recorder captures at least one state-snapshot around the interaction.',
       );
     }
 
@@ -177,28 +183,38 @@ function deriveAssert(
 
     if (indexMatch) {
       const idx = indexMatch[1];
-      for (const path of preMap.keys()) {
-        // Match paths like "segments[0].x", "items[0]", etc. that contain [idx]
-        if (path.includes(`[${idx}]`)) {
+      // Prefer a NUMERIC-valued path for the target index — a drag moves a
+      // coordinate (x), not the element's id. Skip string-valued keys like
+      // "segments[0].id" so we don't try to compute "seg-0" + dx.
+      for (const [path, value] of baseMap.entries()) {
+        if (path.includes(`[${idx}]`) && typeof value === 'number') {
           matchedPath = path;
           break;
         }
       }
     }
 
-    // Fall back to the first path if no index-based match found
+    // Fall back to the first numeric-valued path if no index match found.
     if (!matchedPath) {
-      matchedPath = [...preMap.keys()][0]!;
+      for (const [path, value] of baseMap.entries()) {
+        if (typeof value === 'number') {
+          matchedPath = path;
+          break;
+        }
+      }
+    }
+    if (!matchedPath) {
+      matchedPath = [...baseMap.keys()][0]!;
     }
 
-    const preValue = preMap.get(matchedPath);
-    if (typeof preValue !== 'number') {
+    const baseValue = baseMap.get(matchedPath);
+    if (typeof baseValue !== 'number') {
       throw new Error(
-        `Cannot compute drag intent for non-numeric preValue at path '${matchedPath}': ${JSON.stringify(preValue)}`,
+        `Cannot compute drag intent for non-numeric baseline value at path '${matchedPath}': ${JSON.stringify(baseValue)}`,
       );
     }
 
-    return { path: matchedPath, value: preValue + interaction.dx };
+    return { path: matchedPath, value: baseValue + interaction.dx };
   }
 
   // Click/type with no snapshot change: nothing useful to assert.
