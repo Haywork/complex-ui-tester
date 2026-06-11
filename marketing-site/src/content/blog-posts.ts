@@ -33,6 +33,66 @@ export interface BlogPost {
 
 export const BLOG_POSTS: BlogPost[] = [
   {
+    slug: "cuit-claude-code-goal-verification-harness",
+    title: "CUIT Is the Verification Harness Your Claude Code /goal Needs",
+    date: "2026-06-10",
+    metaDescription:
+      "Claude Code's /goal runs autonomously and self-verifies — but only as well as its goal condition. For UI work, CUIT is that evaluable condition: RED until the loop closes.",
+    primaryKeyword: "claude code goal",
+    bodyMarkdown: `Claude Code's \`/goal\` turns a session into an autonomous loop: you define an end state, the agent works and self-verifies against it, and it keeps going until the condition is met — without checking in with you ([Linas, The Complete Claude /goal Guide](https://linas.substack.com/p/the-complete-claude-goal-guide)). It is one of the most powerful things you can hand an agent. It is also one of the easiest to get quietly wrong.
+
+The guide names the real bottleneck plainly: it isn't model capability, it's **specification quality**. A \`/goal\` is only as good as the condition it verifies against. Get the condition wrong and you hit the worst of the three failure modes the guide identifies — the agent "produces plausible outputs that silently fail to meet actual requirements." It declares victory. The work is broken. You find out later.
+
+That failure mode has a name on the frontend. We call it the **verification gap**, and it is exactly where CUIT lives.
+
+## A /goal is only as honest as its harness
+
+The guide's workflow has four beats: define the end state, **configure the harness**, run autonomously, return finished work. Beat two is the whole game. The harness is what the agent self-verifies against on every iteration. If the harness is a vibe — "the page looks right," "the diff is plausible" — the loop optimizes for plausibility, not correctness.
+
+For backend goals this is mostly solved: the harness is the test suite. A goal like "make the failing tests pass" is evaluable because a test runner returns a hard RED/GREEN the agent can read.
+
+For **UI goals** there is usually no harness at all. "Fix the drag-and-drop so segments don't overlap" has no native runner in the loop. So the agent self-verifies by inspection — it re-reads its own diff, decides it looks correct, and exits GREEN. Nothing ever drove the actual interaction in a real DOM. That is a \`/goal\` running blind, and it is precisely the "silently fails the requirement" outcome.
+
+## CUIT is the evaluable goal condition for UI
+
+CUIT turns a recorded interaction into a deterministic spec that asserts on application **state**, not pixels — and that spec is the goal condition. Point \`/goal\` at it: *the cuit spec for the segment-drag interaction passes GREEN.*
+
+Now the loop is honest. On every iteration the agent runs the spec against the live, jsdom-mounted app. It is RED while segments still overlap. The agent reads the failure — \`segments[0].x expected 100, got 25\` — proposes a fix, re-runs, and only exits when the spec actually turns GREEN. The end state is machine-checkable, deterministic, and the agent cannot fake it by inspection.
+
+This maps onto the three failure modes the guide warns about:
+
+- **Halts at every step** — solved, because the spec is a single non-interactive command the agent owns.
+- **Loops forever** — bounded, because RED/GREEN is unambiguous; there is no "am I done?" question to spin on.
+- **Plausible-but-wrong** — eliminated, because GREEN means the committed \`.spec.ts\` actually executed the interaction and the state assertion held. Plausibility is not accepted as proof.
+
+## Why this is the right shape for autonomous agents
+
+The guide's deeper point — autonomy is downstream of a good condition — is the same bet CUIT makes. The feedback loop is the durable substrate; the model is swappable inside it. A \`/goal\` backed by a CUIT spec survives a model upgrade unchanged: swap the model, and the spec still turns RED on the bug and GREEN on the fix.
+
+And because CUIT normalizes any feedback source into one canonical \`SessionEvent[]\` representation, the goal condition isn't tied to a vendor either. Record the interaction once — from your own recorder, Jam, console logs, whatever you already capture — and the \`/goal\` has an evaluable target.
+
+## How to wire it
+
+1. Record the interaction you want to guarantee (the end state, demonstrated once).
+2. Run \`/cuit-loop\` to generate the deterministic spec and commit it.
+3. Hand the agent the goal: *the cuit spec passes GREEN*.
+4. Let \`/goal\` run. It self-verifies against a real RED→GREEN signal, not a hunch.
+
+\`/goal\` gives the agent autonomy. CUIT gives it a conscience — an end state it can't lie its way past. That is the difference between an agent that says "done" and an agent that is.
+
+We're alpha, and honest about the maturity ladder — but the closed loop runs today, and it is exactly the harness an autonomous UI \`/goal\` has been missing.`,
+    sources: [
+      {
+        label: "Linas — The Complete Claude /goal Guide",
+        href: "https://linas.substack.com/p/the-complete-claude-goal-guide",
+      },
+      {
+        label: "CUIT — Claude Code workflows (docs/13)",
+        href: "https://github.com/speechlabinc/complex-ui-tester/blob/main/docs/13-claude-code-workflows.md",
+      },
+    ],
+  },
+  {
     slug: "claude-code-ui-testing-verification-gap",
     title: "Claude Code UI Testing: Closing the Verification Gap",
     date: "2026-05-06",
