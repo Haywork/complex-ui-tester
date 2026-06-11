@@ -21,6 +21,31 @@ importers:
         specifier: ^2.0.5
         version: 2.1.9(@types/node@20.19.41)(jsdom@25.0.1)
 
+  packages/adapter-cuit:
+    dependencies:
+      '@cuit/types':
+        specifier: workspace:*
+        version: link:../types
+    devDependencies:
+      '@cuit/adapter-jam':
+        specifier: workspace:*
+        version: link:../adapter-jam
+      '@cuit/harness':
+        specifier: workspace:*
+        version: link:../harness
+      '@cuit/runner':
+        specifier: workspace:*
+        version: link:../runner
+      '@cuit/spec-gen':
+        specifier: workspace:*
+        version: link:../spec-gen
+      typescript:
+        specifier: ^5.5.4
+        version: 5.9.3
+      vitest:
+        specifier: ^2.0.5
+        version: 2.1.9(@types/node@20.19.41)(jsdom@25.0.1)
+
   packages/adapter-jam:
     dependencies:
       '@cuit/types':
@@ -93,6 +118,28 @@ importers:
         specifier: ^2.0.5
         version: 2.1.9(@types/node@20.19.41)(jsdom@25.0.1)
 
+  packages/mcp-local:
+    dependencies:
+      '@cuit/adapter-jam':
+        specifier: workspace:*
+        version: link:../adapter-jam
+      '@cuit/harness':
+        specifier: workspace:*
+        version: link:../harness
+      '@cuit/spec-gen':
+        specifier: workspace:*
+        version: link:../spec-gen
+      '@cuit/types':
+        specifier: workspace:*
+        version: link:../types
+    devDependencies:
+      typescript:
+        specifier: ^5.5.4
+        version: 5.9.3
+      vitest:
+        specifier: ^2.0.5
+        version: 2.1.9(@types/node@20.19.41)(jsdom@25.0.1)
+
   packages/recorder:
     dependencies:
       '@cuit/types':
@@ -112,10 +159,29 @@ importers:
         specifier: ^2.0.5
         version: 2.1.9(@types/node@20.19.41)(jsdom@25.0.1)
 
-  packages/recorder-extension: {}
+  packages/recorder-extension:
+    devDependencies:
+      '@cuit/recorder':
+        specifier: workspace:*
+        version: link:../recorder
+      '@types/node':
+        specifier: ^20.14.0
+        version: 20.19.41
+      esbuild:
+        specifier: ^0.21.5
+        version: 0.21.5
+      typescript:
+        specifier: ^5.5.4
+        version: 5.9.3
+      vitest:
+        specifier: ^2.0.5
+        version: 2.1.9(@types/node@20.19.41)(jsdom@25.0.1)
 
   packages/runner:
     dependencies:
+      '@cuit/adapter-cuit':
+        specifier: workspace:*
+        version: link:../adapter-cuit
       '@cuit/adapter-jam':
         specifier: workspace:*
         version: link:../adapter-jam
@@ -181,6 +247,9 @@ importers:
       typescript:
         specifier: ^5.5.4
         version: 5.9.3
+      vitest:
+        specifier: ^2.0.5
+        version: 2.1.9(@types/node@20.19.41)(jsdom@25.0.1)
 
 packages:
 

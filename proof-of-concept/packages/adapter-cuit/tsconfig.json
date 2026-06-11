@@ -9,13 +9,5 @@
   },
   "include": ["src/**/*"],
   "exclude": ["dist", "node_modules"],
-  "references": [
-    { "path": "../types" },
-    { "path": "../adapter-jam" },
-    { "path": "../adapter-cuit" },
-    { "path": "../spec-gen" },
-    { "path": "../harness" },
-    { "path": "../demo-app" },
-    { "path": "../recorder" }
-  ]
+  "references": [{ "path": "../types" }]
 }

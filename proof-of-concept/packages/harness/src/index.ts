@@ -117,17 +117,27 @@ export function registerStateSnapshot(provider: SnapshotProvider): void {
   snapshotProvider = provider;
 }
 
+/**
+ * Remove the currently registered snapshot provider.
+ * Use in test teardown to allow re-registration across test boundaries.
+ * No-op when no provider is registered.
+ */
+export function resetStateSnapshot(): void {
+  snapshotProvider = null;
+}
+
 let capturedConsoleErrors: unknown[][] = [];
 let originalConsoleError: typeof console.error | null = null;
 
 /**
  * Start intercepting `console.error` so a later `assertNoConsoleErrors()` can
- * fail the test if any were emitted during the interaction. Idempotent: a
- * second call resets the captured buffer without re-wrapping.
+ * fail the test if any were emitted during the interaction.
+ * Idempotent: if already intercepting, does NOT reset the buffer (preserves
+ * any errors captured since the first call). Only a fresh install resets.
  */
 export function captureConsoleErrors(): void {
-  capturedConsoleErrors = [];
   if (originalConsoleError !== null) return;
+  capturedConsoleErrors = [];
   originalConsoleError = console.error.bind(console);
   console.error = (...args: unknown[]): void => {
     capturedConsoleErrors.push(args);
@@ -148,16 +158,35 @@ export function getCapturedConsoleErrors(): unknown[][] {
 }
 
 /**
+ * Returns true when the given console.error args are a React test-environment
+ * `act()` warning. These are framework noise that should never count as
+ * application regressions in the CUIT signal.
+ */
+function isReactActWarning(args: unknown[]): boolean {
+  const msg = args.map((a) => String(a)).join(' ');
+  // React emits: "Warning: An update to %s inside a test was not wrapped in act(...)."
+  return (
+    msg.includes('not wrapped in act(') ||
+    msg.includes('inside a test was not wrapped')
+  );
+}
+
+/**
  * Throw if any `console.error` was captured during the interaction. A console
  * error during a UI action is a regression signal even when state looks right.
+ * React's internal `act()` warnings are filtered out because they are test-env
+ * noise rather than application bugs.
  */
 export function assertNoConsoleErrors(): void {
-  if (capturedConsoleErrors.length === 0) return;
-  const rendered = capturedConsoleErrors
+  const appErrors = capturedConsoleErrors.filter(
+    (args) => !isReactActWarning(args),
+  );
+  if (appErrors.length === 0) return;
+  const rendered = appErrors
     .map((args) => args.map((a) => String(a)).join(' '))
     .join('\n');
   throw new Error(
-    `assertNoConsoleErrors: ${capturedConsoleErrors.length} console error(s) ` +
+    `assertNoConsoleErrors: ${appErrors.length} console error(s) ` +
       `during interaction:\n${rendered}`,
   );
 }

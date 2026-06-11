@@ -6,10 +6,10 @@
   "type": "module",
   "scripts": {
     "validate": "node scripts/validate.mjs",
-    "test": "node scripts/validate.mjs",
-    "build": "echo 'no build step — extension ships unbundled' && exit 0",
+    "test": "vitest run",
+    "build": "node build.mjs && node scripts/validate.mjs",
     "lint": "echo 'no lint step' && exit 0",
-    "typecheck": "echo 'no typecheck step (extension is plain JS)' && exit 0"
+    "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "files": [
     "manifest.json",
@@ -18,5 +18,12 @@
     "popup.html",
     "popup.js",
     "icons/"
-  ]
+  ],
+  "devDependencies": {
+    "@cuit/recorder": "workspace:*",
+    "@types/node": "^20.14.0",
+    "esbuild": "^0.21.5",
+    "typescript": "^5.5.4",
+    "vitest": "^2.0.5"
+  }
 }

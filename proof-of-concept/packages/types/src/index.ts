@@ -99,12 +99,25 @@ export type ErrorEvent = SessionEventBase & {
   source?: 'window.error' | 'unhandledrejection';
 };
 
+/**
+ * A keyboard / text-entry event captured when the user types into a field.
+ * `value` is the full committed text value of the input at the time of capture
+ * (not a sequence of individual keystrokes).
+ */
+export type KeyboardEvent = SessionEventBase & {
+  type: 'keyboard';
+  targetSelector: string;
+  targetName?: string;
+  value: string;
+};
+
 export type SessionEvent =
   | PointerEvent
   | StateSnapshotEvent
   | NavEvent
   | ConsoleEvent
-  | ErrorEvent;
+  | ErrorEvent
+  | KeyboardEvent;
 
 export const isConsoleEvent = (e: SessionEvent): e is ConsoleEvent =>
   e.type === 'console';
@@ -112,11 +125,16 @@ export const isConsoleEvent = (e: SessionEvent): e is ConsoleEvent =>
 export const isErrorEvent = (e: SessionEvent): e is ErrorEvent =>
   e.type === 'error-event';
 
+export const isKeyboardEvent = (e: SessionEvent): e is KeyboardEvent =>
+  e.type === 'keyboard';
+
 export type Primitive =
   | { kind: 'goto'; url: string }
   | { kind: 'setClock'; t: number }
   | { kind: 'getStateSnapshot' }
   | { kind: 'dispatchDrag'; targetName: string; dx: number; dy: number }
+  | { kind: 'dispatchClick'; targetName: string }
+  | { kind: 'dispatchType'; targetName: string; value: string }
   | { kind: 'assertStateEquals'; path: string; value: unknown }
   | { kind: 'assertNoConsoleErrors'; count: number };
 

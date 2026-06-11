@@ -5,8 +5,8 @@ import {
   setClock,
 } from '@cuit/harness';
 
-describe('issue-2014 — segment 0 drag must not collide-noop', () => {
-  test('drags segment 0 right by 100px and asserts state moves', () => {
+describe('drag seg-0 by +100px updates segments[0].x', () => {
+  test('drag seg-0 by +100px updates segments[0].x', () => {
     setClock(1716800000000);
 
     dispatchDrag('seg-0', 100, 0);

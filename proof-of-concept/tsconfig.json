@@ -12,6 +12,7 @@
     { "path": "./packages/spec-gen" },
     { "path": "./packages/demo-app" },
     { "path": "./packages/runner" },
-    { "path": "./packages/recorder" }
+    { "path": "./packages/recorder" },
+    { "path": "./packages/mcp-local" }
   ]
 }
