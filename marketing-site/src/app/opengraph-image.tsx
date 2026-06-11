@@ -2,7 +2,7 @@ import { ImageResponse } from "next/og";
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 
-export const alt = "CUIT — The best UI feedback loop for Claude Code";
+export const alt = "CUIT — The best UI feedback loop for Claude Code & Codex";
 
 export const size = { width: 1200, height: 630 };
 
@@ -196,7 +196,7 @@ export default async function Image() {
               textAlign: "center",
             }}
           >
-            The best UI feedback loop for Claude Code
+            The best UI feedback loop for Claude Code &amp; Codex
           </div>
 
           {/* Accent pill */}

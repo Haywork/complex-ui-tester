@@ -51,9 +51,17 @@ export function Hero() {
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="max-w-4xl">
           {/* BrandMark — trust / brand anchor above the headline */}
-          <div className="mb-8">
+          <div className="mb-6">
             <BrandMark size={28} />
           </div>
+
+          {/* Main slogan */}
+          <p className="text-2xl sm:text-3xl font-semibold tracking-tight text-[var(--text-primary)] mb-6">
+            The best UI feedback loop for{" "}
+            <span style={{ color: "var(--color-accent)" }}>Claude Code</span>{" "}
+            &amp;{" "}
+            <span style={{ color: "var(--color-accent)" }}>Codex</span>
+          </p>
 
           {/* Eyebrow */}
           <p className="font-mono text-xs uppercase tracking-widest text-[var(--text-tertiary)] mb-6 flex items-center gap-2">
@@ -61,7 +69,7 @@ export function Hero() {
               className="inline-block w-4 h-px bg-[var(--color-accent)]"
               aria-hidden="true"
             />
-            MCP skill for Claude Code · deterministic · CI-native
+            MCP skill for Claude Code &amp; Codex · deterministic · CI-native
           </p>
 
           {/* Headline — concrete outcome first */}

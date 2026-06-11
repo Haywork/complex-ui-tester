@@ -54,7 +54,7 @@ export function Comparison() {
           >
             The only testing tool
             <br />
-            built for Claude Code.
+            built for Claude Code &amp; Codex.
           </h2>
           <p className="text-[var(--text-secondary)] leading-relaxed">
             Every other approach hands you a REST endpoint and says good luck.

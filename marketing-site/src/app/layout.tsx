@@ -19,7 +19,7 @@ const geistMono = Geist_Mono({
 const SITE_URL = "https://complex-ui-tester.vercel.app";
 const SITE_NAME = "CUIT";
 const SITE_DESCRIPTION =
-  "The best UI feedback loop for Claude Code. Capture console logs + interactions, auto-generate Playwright specs, and close the loop with /cuit-loop — all inside a Claude Code conversation.";
+  "The best UI feedback loop for Claude Code and Codex. Capture console logs + interactions, auto-generate Playwright specs, and close the loop with /cuit-loop — all inside an agentic coding conversation.";
 
 /** JSON-LD structured data (SoftwareApplication + Organization). */
 const jsonLd = {
@@ -34,7 +34,7 @@ const jsonLd = {
       applicationCategory: "DeveloperApplication",
       operatingSystem: "Any",
       description:
-        "The best UI feedback loop for Claude Code. Instrument your app once, record a session, run /cuit-loop, and get a green Playwright regression gate — without leaving the Claude Code conversation.",
+        "The best UI feedback loop for Claude Code and Codex. Instrument your app once, record a session, run /cuit-loop, and get a green Playwright regression gate — without leaving your agentic coding conversation.",
       offers: {
         "@type": "Offer",
         price: "0",
@@ -64,7 +64,7 @@ export const metadata: Metadata = {
     canonical: "/",
   },
   title: {
-    default: `${SITE_NAME} — The best UI feedback loop for Claude Code`,
+    default: `${SITE_NAME} — The best UI feedback loop for Claude Code & Codex`,
     template: `%s · ${SITE_NAME}`,
   },
   description: SITE_DESCRIPTION,
@@ -72,6 +72,9 @@ export const metadata: Metadata = {
     "CUIT",
     "complex-ui-tester",
     "Claude Code",
+    "Codex",
+    "OpenAI Codex",
+    "agentic coding",
     "UI feedback loop",
     "Playwright",
     "UI testing",
@@ -88,7 +91,7 @@ export const metadata: Metadata = {
   authors: [{ name: "SpeechLab, Inc.", url: "mailto:ryan@speechlab.ai" }],
   creator: "SpeechLab, Inc.",
   openGraph: {
-    title: `${SITE_NAME} — The best UI feedback loop for Claude Code`,
+    title: `${SITE_NAME} — The best UI feedback loop for Claude Code & Codex`,
     description: SITE_DESCRIPTION,
     siteName: SITE_NAME,
     url: SITE_URL,
@@ -97,7 +100,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: `${SITE_NAME} — The best UI feedback loop for Claude Code`,
+    title: `${SITE_NAME} — The best UI feedback loop for Claude Code & Codex`,
     description: SITE_DESCRIPTION,
     site: "@speechlab_ai",
   },
