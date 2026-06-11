@@ -22,6 +22,7 @@ const ROUTES = [
   { path: "/quickstart", name: "quickstart" },
   { path: "/pricing", name: "pricing" },
   { path: "/examples/claude-code-workflows", name: "examples" },
+  { path: "/blog", name: "blog" },
 ];
 
 test.describe("visual regression — above the fold", () => {

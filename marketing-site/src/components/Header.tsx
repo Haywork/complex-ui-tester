@@ -17,6 +17,7 @@ const NAV_ITEMS: NavItem[] = [
   { label: "Quickstart", href: "/quickstart" },
   { label: "Example", href: "/examples/speechlab-waveform" },
   { label: "Pricing", href: "/pricing" },
+  { label: "Blog", href: "/blog" },
   { label: "Docs", href: "/docs" },
 ];
 
