@@ -38,12 +38,13 @@ test.describe("home page (/)", () => {
     expect(resp?.status(), "/ should respond 200").toBe(200);
 
     const headline = page.getByRole("heading", { level: 1 });
-    await expect(headline).toContainText("Your AI tool ships UI changes");
-    await expect(headline).toContainText("Make the regression spec land with it");
+    await expect(headline).toContainText("Turn a recorded interaction");
+    await expect(headline).toContainText("regression gate");
 
-    for (let i = 1; i <= 8; i++) {
-      await expect(page.getByTestId(`scene-dot-${i}`)).toBeVisible();
-    }
+    // The slogan leads above the H1.
+    await expect(
+      page.getByText("The best UI feedback loop for", { exact: false }).first()
+    ).toBeVisible();
 
     await page.waitForLoadState("networkidle").catch(() => {
       /* networkidle is best-effort */

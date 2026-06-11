@@ -1,0 +1,51 @@
+name: visual-regression
+
+# CUIT's own UI feedback loop, applied to CUIT's marketing site (dogfood).
+# Screenshots key routes above-the-fold and diffs them against committed
+# baselines, plus a theme guard that fails if the site ever defaults to the
+# washed-out light theme again. A broken render fails the check before merge.
+#
+# Regenerate baselines intentionally after a design change:
+#   pnpm exec playwright test visual.spec.ts --update-snapshots
+# then commit tests/visual.spec.ts-snapshots/.
+
+on:
+  pull_request:
+    paths:
+      - "marketing-site/**"
+  workflow_dispatch: {}
+
+defaults:
+  run:
+    working-directory: marketing-site
+
+concurrency:
+  group: visual-regression-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  visual:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20.20.1"
+          cache: pnpm
+          cache-dependency-path: marketing-site/pnpm-lock.yaml
+      - run: pnpm install --frozen-lockfile
+      - name: Install Playwright Chromium
+        run: pnpm exec playwright install --with-deps chromium
+      - name: Run visual-regression + theme guard
+        run: pnpm exec playwright test visual.spec.ts --reporter=github
+      - name: Upload diff artifacts on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: visual-diffs
+          path: marketing-site/test-results/
+          retention-days: 7
