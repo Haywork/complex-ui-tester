@@ -12,31 +12,41 @@
    * Typefaces: grotesk for prose, mono for data/code — no serif.
    * ──────────────────────────────────────────────────────────────────────── */
 
-  /* Backgrounds — dark IDE-grade, three-layer depth */
-  --color-ink:    #0d0f0e;   /* deepest: page canvas                        */
-  --color-ink-90: #111412;   /* near-black with a faint terminal-green tint  */
+  /* ─── SpeechLab brand palette (parent-company aligned) ──────────────────
+   * Electric teal is the signature accent (doubles as the pass/healthy
+   * signal); burnt red is the fail signal; deep blue + purple are secondary.
+   * Surfaces are SpeechLab's neutral near-black ramp — no green tint.
+   * ──────────────────────────────────────────────────────────────────── */
 
-  /* Neutral surface ramp */
-  --color-mute-1: #161a18;   /* panel / card base                           */
-  --color-mute-2: #1e2320;   /* elevated panel / hover surface              */
-  --color-mute-3: #2e3530;   /* border-heavy, dividers                      */
-  --color-mute-4: #4d5a52;   /* disabled text, low-contrast icons           */
-  --color-mute-5: #8a9e90;   /* secondary text                              */
-  --color-mute-6: #c4d4c8;   /* tertiary text, placeholders                 */
+  /* Backgrounds — neutral IDE-grade near-black, three-layer depth */
+  --color-ink:    #121214;   /* deepest: page canvas                        */
+  --color-ink-90: #1b1b1f;   /* SpeechLab black10                           */
 
-  /* Light mode canvas */
-  --color-paper: #f2f5f2;    /* off-white with green tint for light mode    */
+  /* Neutral surface ramp (SpeechLab black scale) */
+  --color-mute-1: #1b1b1f;   /* panel / card base                           */
+  --color-mute-2: #232327;   /* elevated panel / hover surface              */
+  --color-mute-3: #303033;   /* borders, dividers                           */
+  --color-mute-4: #5d5e62;   /* disabled text, low-contrast icons           */
+  --color-mute-5: #909094;   /* secondary text                              */
+  --color-mute-6: #c5c5ca;   /* tertiary text, placeholders                 */
 
-  /* Brand accents — exactly two ------------------------------------------ */
-  /* Pass / green — loop resolved, snapshot healthy                          */
-  --color-pass:     #1aff6e;   /* oscilloscope phosphor green, full signal   */
-  --color-pass-dim: #0d8038;   /* pass at rest / hover                       */
-  --color-pass-bg:  #051a0d;   /* tinted well for pass badges / highlights   */
+  /* Light mode canvas (neutral, no tint) */
+  --color-paper: #fbfbff;    /* SpeechLab white99 — near-white text on dark */
 
-  /* Fail / red — alarm, broken snapshot, loop start                         */
-  --color-fail:     #ff3b3b;   /* alarm red, CRT warning                     */
-  --color-fail-dim: #b52222;   /* fail at rest / hover                       */
-  --color-fail-bg:  #1a0505;   /* tinted well for fail badges / highlights   */
+  /* Brand accents ---------------------------------------------------------- */
+  /* Pass / teal — loop resolved, snapshot healthy (SpeechLab cyan #36DECF)   */
+  --color-pass:     #36decf;   /* electric teal — signature accent           */
+  --color-pass-dim: #2cbaad;   /* teal at rest / hover                       */
+  --color-pass-bg:  #102c2a;   /* tinted well for pass badges / highlights   */
+
+  /* Fail / red — alarm, broken snapshot, loop start (SpeechLab red #C4441C)  */
+  --color-fail:     #e5573a;   /* alarm red, brightened for dark             */
+  --color-fail-dim: #c4441c;   /* SpeechLab red at rest                      */
+  --color-fail-bg:  #2a0f09;   /* tinted well for fail badges / highlights   */
+
+  /* Secondary accents — deep blue + purple (links, gradients, depth) */
+  --color-blue:   #3a4ade;   /* SpeechLab blue                              */
+  --color-purple: #832ad0;   /* SpeechLab purple                            */
 
   /* Legacy accent alias (keeps .hero-gradient-text and focus ring working) */
   --color-accent:     var(--color-pass);

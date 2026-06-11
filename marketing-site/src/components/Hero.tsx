@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { Button } from "@/components/ui/Button";
-import { BrandMark } from "@/components/BrandMark";
 
 const STAT_ROW = [
   { value: "0.18s", label: "loop closed, end-to-end" },
@@ -50,13 +49,8 @@ export function Hero() {
 
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="max-w-4xl">
-          {/* BrandMark — trust / brand anchor above the headline */}
-          <div className="mb-6">
-            <BrandMark size={28} />
-          </div>
-
-          {/* Main slogan */}
-          <p className="text-2xl sm:text-3xl font-semibold tracking-tight text-[var(--text-primary)] mb-6">
+          {/* Main slogan — the lead */}
+          <p className="text-3xl sm:text-4xl font-semibold tracking-tight text-[var(--text-primary)] mb-6">
             The best UI feedback loop for{" "}
             <span style={{ color: "var(--color-accent)" }}>Claude Code</span>{" "}
             &amp;{" "}
@@ -75,15 +69,12 @@ export function Hero() {
           {/* Headline — concrete outcome first */}
           <h1
             id="hero-headline"
-            className="text-5xl sm:text-6xl md:text-7xl font-bold leading-[0.95] tracking-tight text-[var(--text-primary)] mb-6"
+            className="text-4xl sm:text-5xl lg:text-6xl font-bold leading-[1.05] tracking-tight text-[var(--text-primary)] mb-6"
           >
-            Turn a recorded interaction{" "}
-            <br className="hidden sm:block" />
-            into a committed regression gate{" "}
-            <br className="hidden sm:block" />
+            Turn a recorded interaction into a committed{" "}
             {/* Dark mode: gradient from bright paper → mute-5. Light mode: solid text-primary. */}
             <span className="relative inline-block hero-gradient-text">
-              in under an hour.
+              regression gate.
             </span>
           </h1>
 

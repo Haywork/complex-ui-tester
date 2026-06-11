@@ -88,7 +88,7 @@ export function Header({ isDark, onToggleTheme }: HeaderProps) {
             className="flex items-center gap-2.5 group focus-visible:outline-2 focus-visible:outline-[var(--color-accent)] focus-visible:outline-offset-2 rounded-sm"
             aria-label="CUIT — home"
           >
-            <BrandMark size={22} className="shrink-0 transition-opacity group-hover:opacity-80" />
+            <BrandMark size={22} markOnly className="shrink-0 transition-opacity group-hover:opacity-80" />
             <div className="flex flex-col leading-none">
               <span
                 className="font-mono text-sm font-bold tracking-[0.08em] text-[var(--text-primary)] group-hover:text-[var(--color-accent)] transition-colors"

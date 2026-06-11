@@ -119,7 +119,10 @@ export const viewport: Viewport = {
   initialScale: 1,
 };
 
-const themeInitScript = `try{var s=localStorage.getItem('cuit-theme');if(s==='light')document.documentElement.classList.add('light');else if(s!=='dark'&&window.matchMedia&&window.matchMedia('(prefers-color-scheme: light)').matches)document.documentElement.classList.add('light');}catch(e){}`;
+// Dark is the canonical brand default. Only honor an explicit user opt-in to
+// light; never auto-light from system preference (the design is built for dark
+// and renders washed-out on light).
+const themeInitScript = `try{var s=localStorage.getItem('cuit-theme');if(s==='light')document.documentElement.classList.add('light');}catch(e){}`;
 
 export default function RootLayout({
   children,

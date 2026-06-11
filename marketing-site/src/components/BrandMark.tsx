@@ -34,26 +34,18 @@ interface BrandMarkProps {
   label?: string;
 }
 
-// ─── Brand tokens ────────────────────────────────────────────────────────────
-const RED   = "#ef4444"; // alarm-red  — failing snapshot
-const GREEN = "#22c55e"; // pass-green — sealed regression gate
-const INK   = "#0a0a0b"; // IDE-grade near-black background
-const PAPER = "#fafaf7"; // near-white for wordmark on dark bg
+// ─── Brand tokens (SpeechLab-aligned) ────────────────────────────────────────
+const RED   = "#e5573a"; // alarm-red  — failing snapshot
+const TEAL  = "#36decf"; // electric teal — sealed regression gate (signature accent)
+const GREEN = TEAL;      // alias: the "pass" segment is teal in the SpeechLab palette
+const INK   = "#121214"; // IDE-grade near-black background
+const PAPER = "#fbfbff"; // near-white for wordmark on dark bg
 
 // ─── Loop-mark geometry ──────────────────────────────────────────────────────
-// Circle circumference for r=1: 2π ≈ 6.2832.
-// We work in a 1-unit normalised coordinate space and scale via SVG transform.
-// The path starts at 12 o'clock (top) via rotate(-90).
-//
-// Split: 38% red dashes, 62% green solid.
-// Circumference (r=1): 6.2832
-// Red segment  length : 6.2832 × 0.38 ≈ 2.3876
-// Green segment length: 6.2832 × 0.62 ≈ 3.8956
+// Circle circumference for r=1: 2π ≈ 6.2832. We work in a 1-unit normalised
+// coordinate space and scale via SVG transform. The path starts at 12 o'clock
+// (top) via rotate(-90). A clean teal arc (pass) + short red arc (fail).
 const CIRC = 6.2832;         // circumference at r=1
-const RED_LEN   = CIRC * 0.38;   // 2.3876
-const GREEN_LEN = CIRC * 0.62;   // 3.8956
-const DASH_SIZE = 0.35;           // individual red dash length (normalised)
-const DASH_GAP  = 0.30;           // gap between red dashes
 
 /**
  * The SVG loop mark — inline, no network request.
@@ -64,8 +56,14 @@ function LoopMark({ diameter }: { diameter: number }) {
   const cy = 1.2;
   const r  = 1.0;
   const strokeW     = 0.19;   // main stroke width
-  const glowW       = strokeW * 3.5;
   const tailR       = 0.145;  // tail-bite dot radius
+
+  // Clean two-arc ring: ~72% teal (the sealed/pass segment) + a gap + a short
+  // red arc (the failing snapshot). No background knockout, no heavy glow — so
+  // it reads legibly on ANY background and never collapses into a scribble.
+  const GAP = 0.04 * CIRC;              // breathing gap between the two arcs
+  const tealLen = CIRC * 0.66;
+  const redLen = CIRC * 0.22;
 
   return (
     <svg
@@ -77,89 +75,45 @@ function LoopMark({ diameter }: { diameter: number }) {
       aria-hidden="true"
       style={{ display: "block", flexShrink: 0 }}
     >
-      {/* ── Ambient phosphor glow behind the full ring ── */}
+      {/* Faint full ring for structure */}
       <circle
         cx={cx} cy={cy} r={r}
-        stroke={GREEN}
-        strokeWidth={glowW * 1.6}
-        strokeOpacity={0.07}
+        stroke={TEAL}
+        strokeWidth={strokeW}
+        strokeOpacity={0.12}
       />
 
-      {/* ── RED dashed segment — first 38% of loop ── */}
+      {/* TEAL arc — the pass / sealed segment (starts at 12 o'clock) */}
+      <circle
+        cx={cx} cy={cy} r={r}
+        stroke={TEAL}
+        strokeWidth={strokeW}
+        strokeLinecap="round"
+        strokeDasharray={`${tealLen} ${CIRC - tealLen}`}
+        pathLength={CIRC}
+        transform={`rotate(-90 ${cx} ${cy})`}
+      />
+
+      {/* RED arc — the failing snapshot, after the gap */}
       <circle
         cx={cx} cy={cy} r={r}
         stroke={RED}
         strokeWidth={strokeW}
         strokeLinecap="round"
-        strokeDasharray={`${DASH_SIZE} ${DASH_GAP}`}
+        strokeDasharray={`${redLen} ${CIRC - redLen}`}
+        strokeDashoffset={-(tealLen + GAP)}
         pathLength={CIRC}
         transform={`rotate(-90 ${cx} ${cy})`}
       />
 
-      {/* ── Knockout: overdraw red beyond 38% mark with bg ink ── */}
-      <circle
-        cx={cx} cy={cy} r={r}
-        stroke={INK}
-        strokeWidth={strokeW * 1.4}
-        strokeLinecap="butt"
-        strokeDasharray={`${GREEN_LEN} ${RED_LEN}`}
-        strokeDashoffset={-RED_LEN}
-        pathLength={CIRC}
-        transform={`rotate(-90 ${cx} ${cy})`}
-      />
+      {/* Tail dot where the teal arc begins (12 o'clock) */}
+      <circle cx={cx} cy={cy - r} r={tailR} fill={TEAL} />
 
-      {/* ── GREEN solid segment — outer phosphor glow ── */}
-      <circle
-        cx={cx} cy={cy} r={r}
-        stroke={GREEN}
-        strokeWidth={glowW}
-        strokeOpacity={0.18}
-        strokeLinecap="round"
-        strokeDasharray={`${GREEN_LEN} ${RED_LEN}`}
-        strokeDashoffset={-RED_LEN}
-        pathLength={CIRC}
-        transform={`rotate(-90 ${cx} ${cy})`}
-      />
-
-      {/* ── GREEN solid segment — main stroke ── */}
-      <circle
-        cx={cx} cy={cy} r={r}
-        stroke={GREEN}
-        strokeWidth={strokeW}
-        strokeLinecap="round"
-        strokeDasharray={`${GREEN_LEN} ${RED_LEN}`}
-        strokeDashoffset={-RED_LEN}
-        pathLength={CIRC}
-        transform={`rotate(-90 ${cx} ${cy})`}
-      />
-
-      {/* ── Tail-bite dot — where green endpoint bites back to red start ──
-           The green arc ends at exactly 12 o'clock (cx, cy−r).
-      ── */}
-      {/* Outer halo */}
-      <circle
-        cx={cx} cy={cy - r}
-        r={tailR * 2.2}
-        fill={GREEN}
-        fillOpacity={0.2}
-      />
-      {/* Core dot */}
-      <circle
-        cx={cx} cy={cy - r}
-        r={tailR}
-        fill={GREEN}
-      />
-
-      {/* ── Interior play-triangle ▶ — negative space hint ──
-           Three vertices chosen to sit cleanly inside the ring.
-           Left point: (cx − 0.44, cy)
-           Right-top:  (cx + 0.46, cy − 0.32)
-           Right-bot:  (cx + 0.46, cy + 0.32)
-      ── */}
+      {/* Interior play-triangle ▶ */}
       <path
-        d={`M${cx - 0.44} ${cy - 0.3} L${cx + 0.46} ${cy} L${cx - 0.44} ${cy + 0.3} Z`}
-        fill={GREEN}
-        fillOpacity={0.28}
+        d={`M${cx - 0.36} ${cy - 0.34} L${cx + 0.42} ${cy} L${cx - 0.36} ${cy + 0.34} Z`}
+        fill={TEAL}
+        fillOpacity={0.9}
       />
     </svg>
   );
