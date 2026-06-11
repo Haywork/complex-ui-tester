@@ -1,0 +1,15 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "outDir": "dist/lib",
+    "rootDir": "src",
+    "noEmit": false,
+    "composite": true,
+    "tsBuildInfoFile": "dist/.tsbuildinfo",
+    "jsx": "react-jsx",
+    "allowJs": false
+  },
+  "include": ["src/data.ts", "src/chat.ts", "src/index.ts", "src/fixtures/**/*"],
+  "exclude": ["dist", "node_modules", "src/app"],
+  "references": [{ "path": "../types" }]
+}

@@ -1,0 +1,99 @@
+{
+  "generatedAt": "2026-06-11T12:00:00.000Z",
+  "sessions": [
+    {
+      "id": "sess_drag_after_resize",
+      "title": "Translate UI — drag after resize",
+      "vendor": "cuit",
+      "recordedAt": "2026-06-10T09:14:00.000Z",
+      "eventCount": 42,
+      "url": "http://localhost:5173/translate"
+    },
+    {
+      "id": "sess_segment_collision",
+      "title": "Segment collision on overlap",
+      "vendor": "jam",
+      "recordedAt": "2026-06-10T11:02:00.000Z",
+      "eventCount": 31,
+      "url": "http://localhost:5173/timeline"
+    },
+    {
+      "id": "sess_export_dub",
+      "title": "Export dub — language switch",
+      "vendor": "cuit",
+      "recordedAt": "2026-06-10T15:48:00.000Z",
+      "eventCount": 58,
+      "url": "http://localhost:5173/export"
+    }
+  ],
+  "specs": [
+    {
+      "id": "spec_drag_after_resize",
+      "sessionId": "sess_drag_after_resize",
+      "testName": "translate ui — drag after resize",
+      "primitiveCount": 7,
+      "generatedAt": "2026-06-10T09:15:00.000Z"
+    },
+    {
+      "id": "spec_segment_collision",
+      "sessionId": "sess_segment_collision",
+      "testName": "segment collision on overlap",
+      "primitiveCount": 5,
+      "generatedAt": "2026-06-10T11:03:00.000Z"
+    },
+    {
+      "id": "spec_export_dub",
+      "sessionId": "sess_export_dub",
+      "testName": "export dub — language switch",
+      "primitiveCount": 9,
+      "generatedAt": "2026-06-10T15:49:00.000Z"
+    }
+  ],
+  "runs": [
+    {
+      "id": "run_001",
+      "specId": "spec_drag_after_resize",
+      "status": "green",
+      "flow": "baseline",
+      "turnsToGreen": 1,
+      "durationMs": 1840,
+      "startedAt": "2026-06-10T09:16:00.000Z"
+    },
+    {
+      "id": "run_002",
+      "specId": "spec_segment_collision",
+      "status": "green",
+      "flow": "bug-repro",
+      "turnsToGreen": 3,
+      "durationMs": 5210,
+      "startedAt": "2026-06-10T11:05:00.000Z"
+    },
+    {
+      "id": "run_003",
+      "specId": "spec_export_dub",
+      "status": "green",
+      "flow": "bug-repro",
+      "turnsToGreen": 2,
+      "durationMs": 3320,
+      "startedAt": "2026-06-10T15:51:00.000Z"
+    },
+    {
+      "id": "run_004",
+      "specId": "spec_drag_after_resize",
+      "status": "red",
+      "flow": "bug-repro",
+      "turnsToGreen": null,
+      "durationMs": 980,
+      "startedAt": "2026-06-10T16:10:00.000Z"
+    },
+    {
+      "id": "run_005",
+      "specId": "spec_segment_collision",
+      "status": "flake",
+      "flow": "baseline",
+      "turnsToGreen": null,
+      "durationMs": 1120,
+      "startedAt": "2026-06-10T16:20:00.000Z"
+    }
+  ]
+}
