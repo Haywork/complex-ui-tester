@@ -136,6 +136,7 @@
         this.listeners.push(() => this.doc.removeEventListener(t, handler, true));
       }
       this.installConsoleCapture();
+      this.installKeyboardCapture();
     }
     stop() {
       for (const off of this.listeners) off();
@@ -186,6 +187,40 @@
     /** Number of events captured so far (useful for live dashboards). */
     size() {
       return this.events.length;
+    }
+    // ─── Keyboard / text-input capture ────────────────────────────────────────
+    /**
+     * Installs an `input` event listener on the document that captures text typed
+     * into input fields as `KeyboardEvent` (type:'keyboard') entries.
+     *
+     * The captured `value` is the full current text value of the element at the
+     * time of the event, not individual keystroke deltas.  This matches the
+     * @cuit/types KeyboardEvent contract and what spec-gen needs to replay typing.
+     *
+     * Must be called inside `start()` after `startedAt` is set.
+     */
+    installKeyboardCapture() {
+      const onInput = (ev) => {
+        const target = ev.target;
+        if (!target) return;
+        const value = typeof target.value === 'string' ? target.value : '';
+        const name = semanticName(target, this.selectors);
+        const cssPath = cssPathOf(target);
+        const kbEvent = {
+          seq: this.nextSeq(),
+          vendor: this.vendor,
+          vendorEventId: `${this.sessionId}-kb-${this.seq}`,
+          ts: this.relativeTs(),
+          wallClock: this.now(),
+          type: 'keyboard',
+          targetSelector: cssPath,
+          ...name !== void 0 ? { targetName: name } : {},
+          value
+        };
+        this.events.push(kbEvent);
+      };
+      this.doc.addEventListener('input', onInput, true);
+      this.listeners.push(() => this.doc.removeEventListener('input', onInput, true));
     }
     // ─── Console / error capture ───────────────────────────────────────────────
     /**
@@ -375,43 +410,47 @@
   }
 
   // src/content.entry.ts
-  var active = null;
-  var api = {
-    start(options) {
-      if (active) return { ok: false, error: 'already-recording' };
-      const sessionId = options && options.sessionId || `cuit-${Date.now()}`;
-      active = new Recorder({
-        sessionId,
-        vendor: 'cuit',
-        snapshotProvider: cuitDebugProvider
-        // captureConsole and captureErrors both default to true in Recorder —
-        // no need to pass them explicitly.  This means console.{log,info,warn,
-        // error,debug} and window error/unhandledrejection are captured
-        // automatically with zero extra code here.
-      });
-      active.start();
-      return { ok: true, sessionId };
-    },
-    stop() {
-      if (!active) return { ok: false, error: 'not-recording' };
-      active.stop();
-      const out = active.export();
-      active = null;
-      return { ok: true, session: out };
-    },
-    status() {
-      const hasCuitDebug = Boolean(
-        window.__cuitDebug
-      );
-      if (!active) return { recording: false, hasCuitDebug };
-      return {
-        recording: true,
-        sessionId: active.sessionId,
-        eventCount: active.size(),
-        hasCuitDebug
-      };
-    }
-  };
-  window.__cuitRecorder = api;
-  document.documentElement.dataset['cuitRecorderInstalled'] = 'true';
+  var existing = window.__cuitRecorder;
+  if (existing) {
+  } else {
+    let active = null;
+    const api = {
+      start(options) {
+        if (active) return { ok: false, error: 'already-recording' };
+        const sessionId = options && options.sessionId || `cuit-${Date.now()}`;
+        active = new Recorder({
+          sessionId,
+          vendor: 'cuit',
+          snapshotProvider: cuitDebugProvider
+          // captureConsole and captureErrors both default to true in Recorder —
+          // no need to pass them explicitly.  This means console.{log,info,warn,
+          // error,debug} and window error/unhandledrejection are captured
+          // automatically with zero extra code here.
+        });
+        active.start();
+        return { ok: true, sessionId };
+      },
+      stop() {
+        if (!active) return { ok: false, error: 'not-recording' };
+        active.stop();
+        const out = active.export();
+        active = null;
+        return { ok: true, session: out };
+      },
+      status() {
+        const hasCuitDebug = Boolean(
+          window.__cuitDebug
+        );
+        if (!active) return { recording: false, hasCuitDebug };
+        return {
+          recording: true,
+          sessionId: active.sessionId,
+          eventCount: active.size(),
+          hasCuitDebug
+        };
+      }
+    };
+    window.__cuitRecorder = api;
+    document.documentElement.dataset['cuitRecorderInstalled'] = 'true';
+  }
 })();

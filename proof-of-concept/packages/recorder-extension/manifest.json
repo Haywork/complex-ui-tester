@@ -4,8 +4,7 @@
   "short_name": "cuit recorder",
   "version": "0.1.0",
   "description": "First-party session recorder for agentic UI engineering. Captures pointer events, semantic selectors, and window.__cuitDebug state snapshots, producing the SessionEvent[] JSON that @cuit/spec-gen consumes. Closed-loop UI feedback for Claude Code, Codex, Cursor.",
-  "permissions": ["activeTab", "scripting", "storage", "clipboardWrite", "downloads"],
-  "host_permissions": ["<all_urls>"],
+  "permissions": ["activeTab", "scripting", "clipboardWrite", "downloads"],
   "action": {
     "default_popup": "popup.html",
     "default_title": "complex-ui-tester recorder",
@@ -25,14 +24,5 @@
   "background": {
     "service_worker": "background.js",
     "type": "module"
-  },
-  "content_scripts": [
-    {
-      "matches": ["<all_urls>"],
-      "js": ["content.js"],
-      "run_at": "document_idle",
-      "world": "MAIN",
-      "all_frames": false
-    }
-  ]
+  }
 }

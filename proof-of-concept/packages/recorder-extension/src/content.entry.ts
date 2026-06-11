@@ -13,6 +13,16 @@ import { Recorder, cuitDebugProvider } from '@cuit/recorder';
 // (start / stop / status) must stay exactly as-is — popup.js is plain JS with
 // no build step and these strings are called directly.
 
+// popup.js re-injects this bundle on every call (activeTab model: no static
+// host permission, so the script is pushed on demand). If a recorder is already
+// installed on this window, keep it — re-defining the API would orphan an
+// in-progress recording and lose its events. This guard makes injection
+// idempotent.
+const existing = (window as unknown as { __cuitRecorder?: unknown }).__cuitRecorder;
+if (existing) {
+  // Already installed — leave the live recorder and its API untouched.
+} else {
+
 let active: InstanceType<typeof Recorder> | null = null;
 
 const api = {
@@ -60,3 +70,5 @@ const api = {
 
 // Marker checked by popup.js and validate.mjs to confirm the script ran.
 document.documentElement.dataset['cuitRecorderInstalled'] = 'true';
+
+}

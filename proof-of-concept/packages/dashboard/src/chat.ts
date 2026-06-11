@@ -164,6 +164,69 @@ export async function chat(
   };
 }
 
+/** Relative endpoint the browser posts chat questions to. The server-side proxy
+ * (server/proxy.ts) holds AZURE_OPENAI_API_KEY and runs the full two-pass tool
+ * loop, returning a ready {@link ChatResult}. */
+export const CHAT_PROXY_ROUTE = '/api/chat';
+
+/** True when running in a browser (no Node `process`). */
+function isBrowser(): boolean {
+  return typeof window !== 'undefined' && typeof process === 'undefined';
+}
+
+/**
+ * Answer a question from the browser by calling the server-side proxy at
+ * {@link CHAT_PROXY_ROUTE}, which holds the API key and runs the tool loop. The
+ * `data` layer is NOT used here — the server owns the data and the secret.
+ *
+ * When the proxy is not running (fetch rejects) or returns a non-OK HTTP status,
+ * we degrade to {@link CONFIGURE_KEY_MESSAGE} rather than throwing, preserving
+ * the dashboard's graceful "no live chat" state.
+ *
+ * @param question  The user's natural-language question.
+ * @param fetchImpl Injected fetch, for tests. Defaults to global `fetch`.
+ */
+export async function chatViaProxy(
+  question: string,
+  fetchImpl: typeof fetch = fetch,
+): Promise<ChatResult> {
+  try {
+    const res = await fetchImpl(CHAT_PROXY_ROUTE, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ question }),
+    });
+    if (!res.ok) {
+      return { answer: CONFIGURE_KEY_MESSAGE, ok: false, toolCalls: [] };
+    }
+    const data = (await res.json()) as ChatResult;
+    return {
+      answer: typeof data.answer === 'string' ? data.answer : '',
+      ok: Boolean(data.ok),
+      toolCalls: Array.isArray(data.toolCalls) ? data.toolCalls : [],
+    };
+  } catch {
+    // Proxy unreachable (not started): degrade gracefully, do not throw.
+    return { answer: CONFIGURE_KEY_MESSAGE, ok: false, toolCalls: [] };
+  }
+}
+
+/**
+ * Resolve how a chat turn should run for the current runtime.
+ *
+ * - In the browser, the secret is unavailable by design, so the turn must go
+ *   through the proxy at {@link CHAT_PROXY_ROUTE}.
+ * - On the server (Node), call Azure directly via the env-built client and the
+ *   in-process `data` layer.
+ */
+export async function chatAuto(
+  question: string,
+  data: DashboardData,
+): Promise<ChatResult> {
+  if (isBrowser()) return chatViaProxy(question);
+  return chat(question, data);
+}
+
 /**
  * Build the Azure Responses-API client from environment variables. Returns
  * `null` (no throw) when `AZURE_OPENAI_API_KEY` is unset so callers can degrade

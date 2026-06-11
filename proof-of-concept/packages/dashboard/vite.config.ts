@@ -23,6 +23,15 @@ export default defineConfig({
   server: {
     port: 5174,
     strictPort: true,
+    // Forward the browser's relative /api/chat calls to the chat proxy
+    // (server/index.ts) so the secret stays server-side. Started together via
+    // the `dev:full` npm script. CHAT_PROXY_PORT keeps both ends in sync.
+    proxy: {
+      '/api/chat': {
+        target: `http://localhost:${process.env.CHAT_PROXY_PORT ?? 8787}`,
+        changeOrigin: true,
+      },
+    },
   },
   resolve: {
     alias: {

@@ -13,6 +13,8 @@
   },
   "scripts": {
     "dev": "vite",
+    "proxy": "tsx server/index.ts",
+    "dev:full": "tsx server/index.ts & vite --strictPort",
     "build": "tsc -p tsconfig.lib.json && vite build",
     "preview": "vite preview",
     "typecheck": "tsc -p tsconfig.json --noEmit",

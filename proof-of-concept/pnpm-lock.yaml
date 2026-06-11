@@ -201,6 +201,9 @@ importers:
       '@cuit/recorder':
         specifier: workspace:*
         version: link:../recorder
+      '@cuit/types':
+        specifier: workspace:*
+        version: link:../types
       '@types/node':
         specifier: ^20.14.0
         version: 20.19.41

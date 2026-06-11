@@ -16,7 +16,7 @@ import {
   type KeyboardEvent,
   type ReactElement,
 } from 'react';
-import { chat, CONFIGURE_KEY_MESSAGE } from '../chat.js';
+import { chatAuto, CONFIGURE_KEY_MESSAGE } from '../chat.js';
 import type { DashboardData } from '../data.js';
 import type { ToolName } from '../chat.js';
 
@@ -85,7 +85,7 @@ export function ChatPanel({ data }: ChatPanelProps): ReactElement {
     setBusy(true);
 
     try {
-      const result = await chat(q, data);
+      const result = await chatAuto(q, data);
 
       if (!result.ok && result.answer === CONFIGURE_KEY_MESSAGE) {
         setApiKeyMissing(true);

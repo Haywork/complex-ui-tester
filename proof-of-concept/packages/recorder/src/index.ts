@@ -2,6 +2,7 @@ import type {
   ConsoleEvent,
   ConsoleLevel,
   ErrorEvent,
+  KeyboardEvent as CuitKeyboardEvent,
   NavEvent,
   PointerEvent as CuitPointerEvent,
   SessionEvent,
@@ -204,6 +205,9 @@ export class Recorder {
     // Install console and error capture AFTER pointer listeners so the LIFO
     // teardown order in stop() restores console before removing DOM listeners.
     this.installConsoleCapture();
+
+    // Install keyboard / text-input capture so typed values are recorded.
+    this.installKeyboardCapture();
   }
 
   stop(): void {
@@ -259,6 +263,46 @@ export class Recorder {
   /** Number of events captured so far (useful for live dashboards). */
   size(): number {
     return this.events.length;
+  }
+
+  // ─── Keyboard / text-input capture ────────────────────────────────────────
+
+  /**
+   * Installs an `input` event listener on the document that captures text typed
+   * into input fields as `KeyboardEvent` (type:'keyboard') entries.
+   *
+   * The captured `value` is the full current text value of the element at the
+   * time of the event, not individual keystroke deltas.  This matches the
+   * @cuit/types KeyboardEvent contract and what spec-gen needs to replay typing.
+   *
+   * Must be called inside `start()` after `startedAt` is set.
+   */
+  private installKeyboardCapture(): void {
+    const onInput = (ev: Event): void => {
+      const target = ev.target as HTMLInputElement | HTMLTextAreaElement | null;
+      if (!target) return;
+      // Only capture elements that have a `.value` property (inputs, textareas, etc.)
+      const value = typeof (target as { value?: unknown }).value === 'string'
+        ? (target as { value: string }).value
+        : '';
+      const name = semanticName(target as Element, this.selectors);
+      const cssPath = cssPathOf(target as Element);
+      const kbEvent: CuitKeyboardEvent = {
+        seq: this.nextSeq(),
+        vendor: this.vendor,
+        vendorEventId: `${this.sessionId}-kb-${this.seq}`,
+        ts: this.relativeTs(),
+        wallClock: this.now(),
+        type: 'keyboard',
+        targetSelector: cssPath,
+        ...(name !== undefined ? { targetName: name } : {}),
+        value,
+      };
+      this.events.push(kbEvent);
+    };
+
+    this.doc.addEventListener('input', onInput, true);
+    this.listeners.push(() => this.doc.removeEventListener('input', onInput, true));
   }
 
   // ─── Console / error capture ───────────────────────────────────────────────

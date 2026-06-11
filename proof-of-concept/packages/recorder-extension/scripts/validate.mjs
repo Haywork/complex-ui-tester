@@ -21,12 +21,22 @@ function check(cond, msg) {
 const manifest = JSON.parse(fs.readFileSync(path.join(root, 'manifest.json'), 'utf-8'));
 check(manifest.manifest_version === 3, 'manifest_version must be 3');
 check(manifest.version === '0.1.0', 'version must be 0.1.0 in v0.1');
-const cs = manifest.content_scripts?.[0];
-check(cs?.world === 'MAIN', 'content_scripts[0].world must be "MAIN" — required for window.__cuitDebug access');
-check(Array.isArray(cs?.js) && cs.js.includes('content.js'), 'content_scripts must include content.js');
 check(Array.isArray(manifest.permissions) && manifest.permissions.includes('scripting'),
   'permissions must include "scripting" — popup uses chrome.scripting.executeScript');
+check(Array.isArray(manifest.permissions) && manifest.permissions.includes('activeTab'),
+  'permissions must include "activeTab" — grants per-invocation host access without <all_urls>');
 check(manifest.background?.type === 'module', 'background.type must be "module" (MV3 SW)');
+
+// No host overreach. activeTab grants on-demand access to the active tab, so we
+// must NOT request static all-sites host access via host_permissions or a
+// declarative content_scripts[].matches of <all_urls>/*://*/*. Chrome shows an
+// "all your data on all websites" warning for those — we promise we don't.
+const WILDCARD_HOST = (p) => p === '<all_urls>' || p === '*://*/*' || p === 'http://*/*' || p === 'https://*/*';
+check(!Array.isArray(manifest.host_permissions) || !manifest.host_permissions.some(WILDCARD_HOST),
+  'manifest.host_permissions must not contain a wildcard host (<all_urls>) — use activeTab instead');
+const declaredMatches = (manifest.content_scripts ?? []).flatMap((c) => c.matches ?? []);
+check(!declaredMatches.some(WILDCARD_HOST),
+  'content_scripts[].matches must not contain a wildcard host (<all_urls>) — inject via activeTab + scripting instead');
 
 // --- 2. required files present ------------------------------------------
 for (const f of ['manifest.json', 'background.js', 'content.js', 'popup.html', 'popup.js', 'README.md']) {
@@ -85,6 +95,7 @@ const popup = fs.readFileSync(path.join(root, 'popup.js'), 'utf-8');
 const REQUIRED_POPUP_CALLS = [
   "chrome.scripting.executeScript",
   "world: 'MAIN'",
+  "files: ['content.js']", // injects the bundle on demand (activeTab model)
   '__cuitRecorder',
   'start',
   'stop',

@@ -28,9 +28,28 @@ async function currentTab() {
   return tabs[0];
 }
 
+// Inject the generated recorder bundle (content.js) into the active tab's MAIN
+// world. With activeTab + scripting we hold no static host permission — access
+// is granted only for the tab the user invoked the popup on, only after this
+// call. Idempotent: content.entry.ts no-ops re-injection while recording.
+async function ensureInjected(tabId) {
+  await chrome.scripting.executeScript({
+    target: { tabId },
+    world: 'MAIN',
+    files: ['content.js'],
+  });
+}
+
 async function callRecorder(method, ...args) {
   const tab = await currentTab();
   if (!tab?.id) return null;
+  // Ensure the recorder is present before driving it. activeTab grants the
+  // host access for this executeScript; no <all_urls> permission required.
+  try {
+    await ensureInjected(tab.id);
+  } catch (err) {
+    return { ok: false, error: 'inject-failed', detail: String(err) };
+  }
   const [result] = await chrome.scripting.executeScript({
     target: { tabId: tab.id },
     world: 'MAIN',
