@@ -284,9 +284,12 @@ function buildInput(question: string, toolResults?: ToolResult[]) {
   const input: unknown[] = [{ role: 'user', content: question }];
   if (toolResults) {
     for (const r of toolResults) {
+      // The Azure Responses API only accepts roles assistant|system|developer|user
+      // — NOT 'tool'. Feed tool output back as a developer message so the model
+      // can ground its answer. (Verified live: role:'tool' returns HTTP 400.)
       input.push({
-        role: 'tool',
-        content: JSON.stringify({ tool: r.name, result: r.result }),
+        role: 'developer',
+        content: `Tool result for ${r.name}: ${JSON.stringify(r.result)}`,
       });
     }
   }
