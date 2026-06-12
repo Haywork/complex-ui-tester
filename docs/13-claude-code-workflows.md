@@ -95,6 +95,25 @@ Two skills ship in the OSS repo at `.claude/skills/`. They're
 markdown files Claude Code reads when invoked. Each encodes a
 multi-step procedure that uses the MCP tools in a specific sequence.
 
+**A note on what is and isn't cross-tool.** The skills are
+*Claude-Code-native*: a `SKILL.md` (YAML frontmatter + procedure) plus
+a bundled `evals/` set, in the format Claude Code loads. The
+**MCP server** — the `cuit__` tools — is the *cross-tool* surface:
+because MCP is a protocol, those tools work from Claude Code, Codex,
+Cursor, or any MCP client. So "works in Claude Code & Codex" is a
+statement about the MCP server; the skills are the Claude Code
+ergonomic layer on top of it. There is no separate "Codex skill" — a
+Codex user drives the same MCP tools directly.
+
+**How the skills are authored.** Both skills are built and iterated
+with the [skill-creator](https://docs.claude.com/en/docs/claude-code/skills)
+workflow: a precise, trigger-optimized `description` (the field that
+decides when Claude invokes the skill), a procedure body under ~500
+lines, and an `evals/` directory (`evals.json` + `assertions.md` +
+`results/`) so triggering accuracy and behavior are measured, not
+assumed. When we change a skill we re-run its evals rather than eyeball
+it — the same closed-loop discipline the product itself sells.
+
 ### 2.1 `/cuit-instrument` — wire CUIT into a fresh app
 
 For first-time setup on a new customer repo. Five phases:

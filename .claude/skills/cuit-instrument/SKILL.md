@@ -1,6 +1,7 @@
 ---
 name: cuit-instrument
-description: Wire CUIT into a customer app end-to-end. Auto-detects framework + state lib, mounts window.__cuitDebug, installs the recorder bridge, sets up the GitHub Action, and verifies with a round-trip test session. Use this when starting CUIT against a new codebase.
+description: Wire CUIT into an app end-to-end — auto-detect the framework + state library, mount window.__cuitDebug, install the recorder bridge, set up the GitHub Action, and verify with a round-trip session. This is the one-time setup that must happen before /cuit-loop can run. Use this whenever the user wants to set up, instrument, onboard, or "get CUIT working" in a codebase, asks how to start with CUIT, mentions there is no window.__cuitDebug mount or .github/workflows/cuit.yml yet, or runs /cuit-instrument — even if they don't say the word "instrument".
+trigger: /cuit-instrument · "set up CUIT" · "instrument my app" · "how do I get CUIT working here" · "onboard CUIT" · no window.__cuitDebug mount yet · no .github/workflows/cuit.yml yet · first-time CUIT setup before /cuit-loop
 ---
 
 # /cuit-instrument
