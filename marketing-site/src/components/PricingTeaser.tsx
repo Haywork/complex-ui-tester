@@ -30,8 +30,8 @@ export function PricingTeaser() {
             institutional memory that makes every future spec smarter than the last.
           </p>
           <p className="text-[var(--text-secondary)] leading-relaxed">
-            Start in Claude Code: drop the MCP skill into your workspace and capture your
-            first session in minutes — no curl, no dashboard, no sprint-planning required.
+            Start in Claude Code: connect the MCP server, run the /cuit-loop skill, and
+            capture your first session in minutes — no curl, no dashboard, no sprint-planning required.
           </p>
         </div>
 

@@ -63,7 +63,7 @@ export function Hero() {
               className="inline-block w-4 h-px bg-[var(--color-accent)]"
               aria-hidden="true"
             />
-            MCP skill for Claude Code &amp; Codex · deterministic · CI-native
+            MCP server (Claude Code &amp; Codex) + Claude Code skill · deterministic · CI-native
           </p>
 
           {/* Headline — concrete outcome first */}

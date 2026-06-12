@@ -36,7 +36,7 @@ export function CTA() {
           Close the loop Claude Code can&apos;t close alone.
         </h2>
         <p className="text-lg text-[var(--text-secondary)] leading-relaxed max-w-2xl mx-auto mb-10">
-          Get a free token, drop the MCP skill into your Claude Code workspace,
+          Get a free token, connect the CUIT MCP server in Claude Code (or Codex),
           capture a session, and run{" "}
           <span className="font-mono text-[var(--text-primary)]">
             /cuit-loop
