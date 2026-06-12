@@ -23,7 +23,7 @@ const STEPS: { step: string; label: string; accent: "green" | "red" | "neutral" 
 export function Hero() {
   return (
     <section
-      className="relative pt-32 pb-16 md:pt-40 md:pb-24 overflow-hidden"
+      className="relative pt-24 pb-16 md:pt-28 md:pb-24 overflow-hidden"
       aria-labelledby="hero-headline"
     >
       {/* Subtle grid background */}
