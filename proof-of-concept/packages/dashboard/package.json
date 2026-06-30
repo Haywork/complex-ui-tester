@@ -1,5 +1,5 @@
 {
-  "name": "@cuit/dashboard",
+  "name": "@haywork/dashboard",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -22,7 +22,7 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@cuit/types": "workspace:*",
+    "@haywork/types": "workspace:*",
     "react": "^18.3.1",
     "react-dom": "^18.3.1"
   },

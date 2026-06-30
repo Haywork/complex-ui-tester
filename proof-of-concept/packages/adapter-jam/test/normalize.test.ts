@@ -7,7 +7,7 @@ import type {
   SessionEvent,
   StateSnapshotEvent,
   NavEvent,
-} from '@cuit/types';
+} from '@haywork/types';
 import { normalizeJamSession, type RawJamSession } from '../src/index.js';
 
 const here = dirname(fileURLToPath(import.meta.url));

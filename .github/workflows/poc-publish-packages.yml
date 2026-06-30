@@ -1,0 +1,70 @@
+name: poc publish packages
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "proof-of-concept/packages/**/package.json"
+      - ".github/workflows/poc-publish-packages.yml"
+  workflow_dispatch:
+    inputs:
+      package:
+        description: "Package directory name (empty = publish all)"
+        required: false
+        type: string
+
+concurrency:
+  group: poc-publish-packages-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  prepare:
+    name: prepare matrix
+    runs-on: ubuntu-latest
+    outputs:
+      packages: ${{ steps.matrix.outputs.packages }}
+    steps:
+      - id: matrix
+        env:
+          INPUT_PACKAGE: ${{ github.event.inputs.package }}
+        run: |
+          if [[ -n "${INPUT_PACKAGE}" ]]; then
+            packages="[\"${INPUT_PACKAGE}\"]"
+          else
+            packages='["types","harness","adapter-jam","recorder","spec-gen","mcp-local"]'
+          fi
+          echo "packages=${packages}" >> "${GITHUB_OUTPUT}"
+
+  publish:
+    name: publish @haywork/${{ matrix.package }}
+    needs: prepare
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        package: ${{ fromJSON(needs.prepare.outputs.packages) }}
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: pnpm/action-setup@v6
+        with:
+          version: 9.14.2
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "24"
+          registry-url: https://npm.pkg.github.com
+          scope: "@haywork"
+
+      - name: Build and publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          cd proof-of-concept
+          pnpm install --frozen-lockfile
+          pnpm --filter "@haywork/${{ matrix.package }}..." run build
+          pnpm --filter "@haywork/${{ matrix.package }}" publish --no-git-checks --access restricted

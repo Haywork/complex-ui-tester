@@ -1,4 +1,4 @@
-import type { SessionEvent } from '@cuit/types';
+import type { SessionEvent } from '@haywork/types';
 
 const URL = 'http://localhost:5173/';
 const TARGET_SELECTOR = '[data-segment-id="seg-0"]';

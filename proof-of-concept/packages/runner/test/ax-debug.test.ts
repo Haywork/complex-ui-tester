@@ -10,7 +10,7 @@
  *   segment-collision.json (via inline events)  — seg-0 drag, dx=100, dy=0
  */
 import { describe, expect, test } from 'vitest';
-import type { SessionEvent, PointerEvent as CuitPointerEvent, Primitive } from '@cuit/types';
+import type { SessionEvent, PointerEvent as CuitPointerEvent, Primitive } from '@haywork/types';
 import {
   minimalDiff,
   stepState,
@@ -343,7 +343,7 @@ describe('listPrimitives', () => {
     expect(returnedKinds).toEqual(expectedKinds);
   });
 
-  test('setClock and dispatchDrag are marked executable — they call into @cuit/harness via runPrimitive', () => {
+  test('setClock and dispatchDrag are marked executable — they call into @haywork/harness via runPrimitive', () => {
     const entries = listPrimitives();
 
     const setClock = entries.find((e) => e.kind === 'setClock');

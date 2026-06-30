@@ -11,7 +11,7 @@ import {
   type Primitive,
   type SessionEvent,
   type StateSnapshotEvent,
-} from '@cuit/types';
+} from '@haywork/types';
 
 // ---------------------------------------------------------------------------
 // Type guards
@@ -464,7 +464,7 @@ export function serializeSpec(spec: GeneratedSpec): string {
     "import { describe, expect, test } from 'vitest';",
     'import {',
     ...imports,
-    "} from '@cuit/harness';",
+    "} from '@haywork/harness';",
     '',
     `describe(${literal(spec.testName)}, () => {`,
     `  test(${literal(innerTestName)}, () => {`,

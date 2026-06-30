@@ -1,5 +1,5 @@
 /**
- * Tests for @cuit/adapter-cuit — the identity adapter for native cuit sessions.
+ * Tests for @haywork/adapter-cuit — the identity adapter for native cuit sessions.
  *
  * These tests are INTENTIONALLY FAILING until packages/adapter-cuit/src/index.ts
  * is implemented and packages/runner/src/index.ts gains selectAdapter() routing.
@@ -20,7 +20,7 @@ import type {
   StateSnapshotEvent,
   ConsoleEvent,
   ErrorEvent,
-} from '@cuit/types';
+} from '@haywork/types';
 // Resolves to the stub src/index.ts which exports nothing — normalizeCuitSession
 // will be undefined, causing every test in the first describe block to fail.
 import { normalizeCuitSession, type RawCuitSession } from '../src/index.js';
@@ -533,7 +533,7 @@ const ROUTING_GENERATED_SPEC = {
 };
 
 const ROUTING_SERIALIZED_SPEC = `import { describe, expect, test } from 'vitest';
-import { dispatchDrag, getStateSnapshot, setClock } from '@cuit/harness';
+import { dispatchDrag, getStateSnapshot, setClock } from '@haywork/harness';
 
 describe('routing-test — vendor dispatch smoke', () => {
   test('drags segment 0 right by 100px and asserts state moves', () => {
@@ -586,11 +586,11 @@ vi.mock('node:fs/promises', () => ({
   },
 }));
 
-vi.mock('@cuit/adapter-jam', () => ({
+vi.mock('@haywork/adapter-jam', () => ({
   normalizeJamSession: jamAdapterMocks.normalizeJamSession,
 }));
 
-vi.mock('@cuit/adapter-cuit', async (importOriginal) => {
+vi.mock('@haywork/adapter-cuit', async (importOriginal) => {
   // Use vi.importActual so the static import of normalizeCuitSession (which
   // resolves to the same module) gets the REAL function by default.  The
   // routing tests override with mockReturnValue; every other test calls through.
@@ -603,12 +603,12 @@ vi.mock('@cuit/adapter-cuit', async (importOriginal) => {
   };
 });
 
-vi.mock('@cuit/spec-gen', () => ({
+vi.mock('@haywork/spec-gen', () => ({
   generateSpec: specGenMocks.generateSpec,
   serializeSpec: specGenMocks.serializeSpec,
 }));
 
-vi.mock('@cuit/harness', () => ({
+vi.mock('@haywork/harness', () => ({
   setClock: harnessMocks.setClock,
   dispatchDrag: harnessMocks.dispatchDrag,
   getStateSnapshot: harnessMocks.getStateSnapshot,

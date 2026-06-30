@@ -4,7 +4,7 @@
     "original_test": "tests/playwright/waveform/drag-after-resize.spec.ts",
     "branch_b_pr": "https://github.com/speechlabinc/translate-ui-react/pull/1995",
     "bug_ids": ["#1833", "#1952"],
-    "description": "Real-shape session capture modeling what @cuit/recorder WOULD have captured against the live translate-ui-react editor when reproducing the drag-after-resize regression. State-snapshot paths use the actual production __waveformDebug.getState() shape: activeSegmentIndex / playheadSeconds / scrollLeft / segments[].startTime / segments[].endTime / segments[].x / segments[].width / segments[].id / segments[].speaker. The pointer events fire on a real segment-1 element rendered by react-rnd inside WaveFormDub.",
+    "description": "Real-shape session capture modeling what @haywork/recorder WOULD have captured against the live translate-ui-react editor when reproducing the drag-after-resize regression. State-snapshot paths use the actual production __waveformDebug.getState() shape: activeSegmentIndex / playheadSeconds / scrollLeft / segments[].startTime / segments[].endTime / segments[].x / segments[].width / segments[].id / segments[].speaker. The pointer events fire on a real segment-1 element rendered by react-rnd inside WaveFormDub.",
     "captured_by": "synthesized from drag-after-resize.spec.ts on 2026-06-06",
     "captured_against_sha": "developNoWaveFormFinal"
   },

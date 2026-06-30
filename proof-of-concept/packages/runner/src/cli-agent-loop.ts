@@ -112,12 +112,12 @@ async function main(): Promise<void> {
     { Recorder, cuitDebugProvider },
     { generateSpec, serializeSpec },
   ] = await Promise.all([
-    import('@cuit/demo-app'),
+    import('@haywork/demo-app'),
     import('react'),
     import('react-dom/client'),
-    import('@cuit/harness'),
-    import('@cuit/recorder'),
-    import('@cuit/spec-gen'),
+    import('@haywork/harness'),
+    import('@haywork/recorder'),
+    import('@haywork/spec-gen'),
   ]);
   const reactAct = React as unknown as ReactAct;
   const { dispatchDrag, registerStateSnapshot, getStateSnapshot, setClock } = harness;

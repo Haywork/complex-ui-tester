@@ -1,5 +1,5 @@
 {
-  "name": "@cuit/adapter-cuit",
+  "name": "@haywork/adapter-cuit",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -18,13 +18,13 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@cuit/types": "workspace:*"
+    "@haywork/types": "workspace:*"
   },
   "devDependencies": {
-    "@cuit/adapter-jam": "workspace:*",
-    "@cuit/harness": "workspace:*",
-    "@cuit/runner": "workspace:*",
-    "@cuit/spec-gen": "workspace:*",
+    "@haywork/adapter-jam": "workspace:*",
+    "@haywork/harness": "workspace:*",
+    "@haywork/runner": "workspace:*",
+    "@haywork/spec-gen": "workspace:*",
     "typescript": "^5.5.4",
     "vitest": "^2.0.5"
   }

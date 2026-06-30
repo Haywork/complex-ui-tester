@@ -120,10 +120,10 @@ async function main(): Promise<void> {
 
   const [{ App }, React, ReactDOM, { registerStateSnapshot, getStateSnapshot }, { runProofLoop }] =
     await Promise.all([
-      import('@cuit/demo-app'),
+      import('@haywork/demo-app'),
       import('react'),
       import('react-dom/client'),
-      import('@cuit/harness'),
+      import('@haywork/harness'),
       import('./index.js'),
     ]);
   const reactAct = React as unknown as ReactAct;

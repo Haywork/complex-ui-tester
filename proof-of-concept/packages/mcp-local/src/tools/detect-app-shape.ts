@@ -139,7 +139,7 @@ export async function detectAppShapeTool(
     const next_actions: string[] = cuitDebugWired
       ? [
           `App shape detected: ${framework} + ${stateLib}. window.__cuitDebug is wired.`,
-          'Record a session with the @cuit/recorder-extension or @cuit/recorder npm module.',
+          'Record a session with the @haywork/recorder-extension or @haywork/recorder npm module.',
           'Then run cuit__generate_spec_from_session with the recorded session.',
         ]
       : [

@@ -1,16 +1,16 @@
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
-import { normalizeJamSession, type RawJamSession } from '@cuit/adapter-jam';
-import { normalizeCuitSession, type RawCuitSession } from '@cuit/adapter-cuit';
+import { normalizeJamSession, type RawJamSession } from '@haywork/adapter-jam';
+import { normalizeCuitSession, type RawCuitSession } from '@haywork/adapter-cuit';
 import {
   assertNoConsoleErrors,
   captureConsoleErrors,
   dispatchDrag,
   getStateSnapshot,
   setClock,
-} from '@cuit/harness';
-import { generateSpec, serializeSpec } from '@cuit/spec-gen';
-import type { GeneratedSpec, Primitive, SessionEvent } from '@cuit/types';
+} from '@haywork/harness';
+import { generateSpec, serializeSpec } from '@haywork/spec-gen';
+import type { GeneratedSpec, Primitive, SessionEvent } from '@haywork/types';
 
 export type ProofLoopStep =
   | 'load'

@@ -2,7 +2,7 @@
  * real-exec.test.ts
  *
  * Drives runProofLoop / executeSpec against a REAL jsdom-mounted demo-app with
- * NO @cuit/harness mock. RED must come from assertStateEquals actually throwing;
+ * NO @haywork/harness mock. RED must come from assertStateEquals actually throwing;
  * GREEN must come from the assertion not throwing. The comparison shortcut
  * (specMatchesExpected) must NOT be the oracle.
  *
@@ -15,7 +15,7 @@
 
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import { JSDOM } from 'jsdom';
-import type { GeneratedSpec, Primitive } from '@cuit/types';
+import type { GeneratedSpec, Primitive } from '@haywork/types';
 import type { ProofLoopMode, ProofLoopOptions, ProofLoopResult } from '../src/index.js';
 
 // ---------------------------------------------------------------------------
@@ -158,7 +158,7 @@ function createRealSurfaceProvider(): {
   const win = globalThis as unknown as { window: Window & { __cuitDebug?: CuitDebug } };
 
   // Lazily resolved module references (populated on first navigate call).
-  type HarnessModule = typeof import('@cuit/harness') & { resetStateSnapshot: () => void };
+  type HarnessModule = typeof import('@haywork/harness') & { resetStateSnapshot: () => void };
   let reactDomCreateRoot: typeof import('react-dom/client')['createRoot'] | null = null;
   let appComponent: React.FC<{ fixSegmentCollision?: boolean }> | null = null;
   let reactModule: { createElement: typeof React.createElement } & ReactAct | null = null;
@@ -172,10 +172,10 @@ function createRealSurfaceProvider(): {
       // Lazily load modules on first call so we use the post-resetModules instances.
       if (!harnessModule) {
         const [{ App }, React, ReactDOM, harness] = await Promise.all([
-          import('@cuit/demo-app'),
+          import('@haywork/demo-app'),
           import('react'),
           import('react-dom/client'),
-          import('@cuit/harness'),
+          import('@haywork/harness'),
         ]);
         appComponent = App as React.FC<{ fixSegmentCollision?: boolean }>;
         reactModule = React as unknown as { createElement: typeof React.createElement } & ReactAct;
@@ -331,7 +331,7 @@ describe('executeSpec — real primitive execution (no harness mock)', () => {
     const { provider, teardown } = await createRealSurfaceProvider();
 
     try {
-      // Import the runner WITHOUT mocking @cuit/harness.
+      // Import the runner WITHOUT mocking @haywork/harness.
       vi.resetModules();
       const { runProofLoop } = await import('../src/index.js');
 
@@ -554,7 +554,7 @@ describe('executeSpec — real primitive execution (no harness mock)', () => {
         // executeSpec will call captureConsoleErrors() again which is idempotent
         // (does NOT reset the buffer when already intercepting), so this entry
         // persists until assertNoConsoleErrors fires.
-        const { captureConsoleErrors: startCapture } = await import('@cuit/harness');
+        const { captureConsoleErrors: startCapture } = await import('@haywork/harness');
         startCapture();
         console.error('synthetic-error-for-test');
 
@@ -697,7 +697,7 @@ describe('executeSpec — real primitive execution (no harness mock)', () => {
       mkdir: vi.fn().mockResolvedValue(undefined),
     }));
 
-    vi.doMock('@cuit/adapter-jam', () => ({
+    vi.doMock('@haywork/adapter-jam', () => ({
       normalizeJamSession: vi.fn().mockReturnValue([
         {
           seq: 0,
@@ -711,7 +711,7 @@ describe('executeSpec — real primitive execution (no harness mock)', () => {
       ]),
     }));
 
-    vi.doMock('@cuit/spec-gen', () => ({
+    vi.doMock('@haywork/spec-gen', () => ({
       generateSpec: vi.fn().mockReturnValue(REGRESSION_SPEC),
       serializeSpec: vi.fn().mockReturnValue('/* serialized */'),
     }));
@@ -723,7 +723,7 @@ describe('executeSpec — real primitive execution (no harness mock)', () => {
       // fixed-mode: drag worked — segment 0 ended at x=100
       .mockReturnValueOnce({ 'segments[0].x': 100 });
 
-    vi.doMock('@cuit/harness', () => ({
+    vi.doMock('@haywork/harness', () => ({
       setClock: vi.fn(),
       dispatchDrag: vi.fn(),
       getStateSnapshot: getStateSnapshotMock,

@@ -1,24 +1,38 @@
 {
-  "name": "@cuit/adapter-jam",
+  "name": "@haywork/adapter-jam",
   "version": "0.1.0",
-  "private": true,
+  "description": "Jam session adapter for CUIT",
   "type": "module",
-  "main": "./src/index.ts",
-  "types": "./src/index.ts",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "exports": {
     ".": {
-      "types": "./src/index.ts",
-      "default": "./src/index.ts"
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
     }
+  },
+  "files": [
+    "dist"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Haywork/complex-ui-tester.git",
+    "directory": "proof-of-concept/packages/adapter-jam"
+  },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com",
+    "access": "restricted"
   },
   "scripts": {
     "build": "tsc -p tsconfig.json",
+    "prepublishOnly": "pnpm run build",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "lint": "tsc -p tsconfig.json --noEmit",
     "test": "vitest run"
   },
   "dependencies": {
-    "@cuit/types": "workspace:*"
+    "@haywork/types": "workspace:*"
   },
   "devDependencies": {
     "typescript": "^5.5.4",

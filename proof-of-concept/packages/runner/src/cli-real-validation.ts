@@ -1,13 +1,13 @@
 /**
  * cli-real-validation.ts — the real dogfood.
  *
- * Runs the @cuit/spec-gen-shaped loop against a session fixture captured
+ * Runs the @haywork/spec-gen-shaped loop against a session fixture captured
  * against the SpeechLab translate-ui-react editor (the codebase that
  * shipped Branch B / PR #1995). Proves CUIT can emit a regression spec
  * equivalent to the hand-written Branch B Playwright test, from session
  * shape produced by the real production __waveformDebug API.
  *
- * The rule-based generator in @cuit/spec-gen v0.1 hard-codes the
+ * The rule-based generator in @haywork/spec-gen v0.1 hard-codes the
  * canonical demo assertion path. The translate-ui-react fixture
  * asserts on real production paths (`playheadSeconds`,
  * `segments[1].startTime`, etc.). This CLI does the dynamic
@@ -23,7 +23,7 @@ import type {
   PointerEvent as CuitPointerEvent,
   SessionEvent,
   StateSnapshotEvent,
-} from '@cuit/types';
+} from '@haywork/types';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -163,11 +163,11 @@ function serializeSpec(args: {
     '  dispatchDrag,',
     '  getStateSnapshot,',
     '  setClock,',
-    "} from '@cuit/harness';",
+    "} from '@haywork/harness';",
     '',
     `// Generated from a session captured against ${PRODUCTION_REPO}`,
     `// (the codebase that shipped Branch B / PR #1995). The translate-ui-react`,
-    `// __waveformDebug API exposes the production-equivalent of @cuit/harness;`,
+    `// __waveformDebug API exposes the production-equivalent of @haywork/harness;`,
     `// this generated spec drives the same primitives the hand-written`,
     `// ${PRODUCTION_BRANCH_B_TEST} drives.`,
     '',
@@ -238,7 +238,7 @@ async function main(): Promise<void> {
   emit(`       original spec: ${PRODUCTION_REPO_PATH}/${PRODUCTION_BRANCH_B_TEST}`);
   emit(`       both specs ground in the same primitive set:`);
   emit(`          Branch B Playwright → page.evaluate(window.__waveformDebug.dispatchDrag(...))`);
-  emit(`          CUIT @cuit/harness  → dispatchDrag(...)`);
+  emit(`          CUIT @haywork/harness  → dispatchDrag(...)`);
   emit(`       both assert on the same state-shape:`);
   emit(`          Branch B: state.playheadSeconds, state.segments[1].startTime`);
   emit(`          CUIT     : snapshot['${assertion.path}']`);

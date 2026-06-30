@@ -1,17 +1,17 @@
-# @cuit/recorder
+# @haywork/recorder
 
 Runtime recorder for CUIT session capture. Intercepts pointer events, state snapshots, navigation, and — optionally — console output and uncaught errors, then serialises them into a `RecordedSession` that spec-gen can replay.
 
 ## Installation
 
 ```bash
-pnpm add @cuit/recorder
+pnpm add @haywork/recorder
 ```
 
 ## Basic usage
 
 ```ts
-import { Recorder } from '@cuit/recorder';
+import { Recorder } from '@haywork/recorder';
 
 const rec = new Recorder({ sessionId: 'my-session' });
 rec.start();
@@ -71,14 +71,14 @@ The hook runs synchronously inside the console wrapper, so keep it fast. Throwin
 
 ### The `assertNoConsoleErrors` assertion (harness)
 
-`@cuit/harness` exports `captureConsoleErrors`, `assertNoConsoleErrors`, and `restoreConsoleErrors`. These are separate from the recorder and used inside generated Playwright/Vitest specs:
+`@haywork/harness` exports `captureConsoleErrors`, `assertNoConsoleErrors`, and `restoreConsoleErrors`. These are separate from the recorder and used inside generated Playwright/Vitest specs:
 
 ```ts
 import {
   captureConsoleErrors,
   assertNoConsoleErrors,
   restoreConsoleErrors,
-} from '@cuit/harness';
+} from '@haywork/harness';
 
 test('drag must not log errors', () => {
   captureConsoleErrors(); // intercepts console.error for this test

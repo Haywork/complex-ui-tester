@@ -7,7 +7,7 @@ import type {
   PointerEvent as CuitPointerEvent,
   SessionEvent,
   StateSnapshotEvent,
-} from '@cuit/types';
+} from '@haywork/types';
 
 // ─── Console capture constants ────────────────────────────────────────────────
 
@@ -273,7 +273,7 @@ export class Recorder {
    *
    * The captured `value` is the full current text value of the element at the
    * time of the event, not individual keystroke deltas.  This matches the
-   * @cuit/types KeyboardEvent contract and what spec-gen needs to replay typing.
+   * @haywork/types KeyboardEvent contract and what spec-gen needs to replay typing.
    *
    * Must be called inside `start()` after `startedAt` is set.
    */

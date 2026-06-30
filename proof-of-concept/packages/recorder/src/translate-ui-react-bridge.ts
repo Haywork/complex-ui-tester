@@ -17,7 +17,7 @@
  *     if (process.env.NODE_ENV === 'production') return;
  *     const url = new URL(window.location.href);
  *     if (!url.searchParams.has('cuitRecorder')) return;
- *     const { mountTranslateUiReactBridge } = require('@cuit/recorder/translate-ui-react-bridge');
+ *     const { mountTranslateUiReactBridge } = require('@haywork/recorder/translate-ui-react-bridge');
  *     return mountTranslateUiReactBridge({
  *       apiUrl: process.env.NEXT_PUBLIC_CUIT_API_URL ?? 'http://localhost:7710',
  *       tenantToken: process.env.NEXT_PUBLIC_CUIT_TOKEN ?? 'dev-token-speechlab',

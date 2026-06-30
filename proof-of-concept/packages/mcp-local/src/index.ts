@@ -32,7 +32,7 @@ export const TOOL_DESCRIPTORS = [
     name: 'cuit__generate_spec_from_session',
     title: 'Generate spec from session',
     description:
-      'Normalize a Jam or CUIT session and generate a Vitest spec via @cuit/spec-gen.',
+      'Normalize a Jam or CUIT session and generate a Vitest spec via @haywork/spec-gen.',
     inputSchema: {
       type: 'object',
       properties: {

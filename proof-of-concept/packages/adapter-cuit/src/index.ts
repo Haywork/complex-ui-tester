@@ -5,8 +5,8 @@ import type {
   StateSnapshotEvent,
   ConsoleEvent,
   ErrorEvent,
-} from '@cuit/types';
-import { isConsoleLevel } from '@cuit/types';
+} from '@haywork/types';
+import { isConsoleLevel } from '@haywork/types';
 
 export type RawCuitSession = {
   sessionId: string;

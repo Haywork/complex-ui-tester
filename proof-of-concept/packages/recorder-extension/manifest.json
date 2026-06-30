@@ -3,7 +3,7 @@
   "name": "complex-ui-tester recorder",
   "short_name": "cuit recorder",
   "version": "0.1.0",
-  "description": "First-party session recorder for agentic UI engineering. Captures pointer events, semantic selectors, and window.__cuitDebug state snapshots, producing the SessionEvent[] JSON that @cuit/spec-gen consumes. Closed-loop UI feedback for Claude Code, Codex, Cursor.",
+  "description": "First-party session recorder for agentic UI engineering. Captures pointer events, semantic selectors, and window.__cuitDebug state snapshots, producing the SessionEvent[] JSON that @haywork/spec-gen consumes. Closed-loop UI feedback for Claude Code, Codex, Cursor.",
   "permissions": ["activeTab", "scripting", "clipboardWrite", "downloads"],
   "action": {
     "default_popup": "popup.html",

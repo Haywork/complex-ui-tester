@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
-import type { GeneratedSpec, SessionEvent } from '@cuit/types';
+import type { GeneratedSpec, SessionEvent } from '@haywork/types';
 
 const FIXTURE_PATH = '/abs/fixtures/segment-collision.json';
 const OUT_DIR = '/abs/out';
@@ -47,7 +47,7 @@ const GENERATED_SPEC: GeneratedSpec = {
 };
 
 const SERIALIZED_SPEC = `import { describe, expect, test } from 'vitest';
-import { dispatchDrag, getStateSnapshot, setClock } from '@cuit/harness';
+import { dispatchDrag, getStateSnapshot, setClock } from '@haywork/harness';
 
 describe('issue-2014 — segment 0 drag must not collide-noop', () => {
   test('drags segment 0 right by 100px and asserts state moves', () => {
@@ -92,16 +92,16 @@ vi.mock('node:fs/promises', () => ({
   },
 }));
 
-vi.mock('@cuit/adapter-jam', () => ({
+vi.mock('@haywork/adapter-jam', () => ({
   normalizeJamSession: adapterMocks.normalizeJamSession,
 }));
 
-vi.mock('@cuit/spec-gen', () => ({
+vi.mock('@haywork/spec-gen', () => ({
   generateSpec: specGenMocks.generateSpec,
   serializeSpec: specGenMocks.serializeSpec,
 }));
 
-vi.mock('@cuit/harness', () => ({
+vi.mock('@haywork/harness', () => ({
   setClock: harnessMocks.setClock,
   dispatchDrag: harnessMocks.dispatchDrag,
   getStateSnapshot: harnessMocks.getStateSnapshot,

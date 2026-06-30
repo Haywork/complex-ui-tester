@@ -1,7 +1,7 @@
-import type { SessionEvent } from '@cuit/types';
-import { normalizeJamSession, type RawJamSession } from '@cuit/adapter-jam';
-import { generateSpec, serializeSpec } from '@cuit/spec-gen';
-import type { GeneratedSpec } from '@cuit/types';
+import type { SessionEvent } from '@haywork/types';
+import { normalizeJamSession, type RawJamSession } from '@haywork/adapter-jam';
+import { generateSpec, serializeSpec } from '@haywork/spec-gen';
+import type { GeneratedSpec } from '@haywork/types';
 import { ok, err, wrap, type AxEnvelope } from '../envelope.js';
 
 export type GenerateSpecInput =
@@ -15,9 +15,9 @@ export type GenerateSpecData = {
 };
 
 /**
- * Normalize an incoming session and generate a Vitest spec via @cuit/spec-gen.
+ * Normalize an incoming session and generate a Vitest spec via @haywork/spec-gen.
  *
- * - vendor==='jam' raw sessions are normalized via @cuit/adapter-jam.
+ * - vendor==='jam' raw sessions are normalized via @haywork/adapter-jam.
  * - All other vendor values are assumed to already carry typed SessionEvent[].
  * - An empty events array returns outcome:'error' instead of throwing.
  */

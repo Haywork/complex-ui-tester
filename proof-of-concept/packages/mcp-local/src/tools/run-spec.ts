@@ -1,4 +1,4 @@
-import type { GeneratedSpec, StateSnapshotEvent } from '@cuit/types';
+import type { GeneratedSpec, StateSnapshotEvent } from '@haywork/types';
 import { ok, wrap, type AxEnvelope } from '../envelope.js';
 
 export type StateSnapshot = Record<string, unknown>;

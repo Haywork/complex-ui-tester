@@ -1,5 +1,5 @@
 {
-  "name": "@cuit/runner",
+  "name": "@haywork/runner",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -20,13 +20,13 @@
     "proof:agent-loop": "tsx src/cli-agent-loop.ts"
   },
   "dependencies": {
-    "@cuit/adapter-cuit": "workspace:*",
-    "@cuit/adapter-jam": "workspace:*",
-    "@cuit/demo-app": "workspace:*",
-    "@cuit/harness": "workspace:*",
-    "@cuit/recorder": "workspace:*",
-    "@cuit/spec-gen": "workspace:*",
-    "@cuit/types": "workspace:*",
+    "@haywork/adapter-cuit": "workspace:*",
+    "@haywork/adapter-jam": "workspace:*",
+    "@haywork/demo-app": "workspace:*",
+    "@haywork/harness": "workspace:*",
+    "@haywork/recorder": "workspace:*",
+    "@haywork/spec-gen": "workspace:*",
+    "@haywork/types": "workspace:*",
     "jsdom": "^25.0.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1"

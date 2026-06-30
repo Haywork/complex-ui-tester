@@ -1,28 +1,43 @@
 {
-  "name": "@cuit/recorder",
+  "name": "@haywork/recorder",
   "version": "0.1.0",
-  "private": true,
+  "description": "CUIT session recorder core",
   "type": "module",
-  "main": "./src/index.ts",
-  "types": "./src/index.ts",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "exports": {
     ".": {
-      "types": "./src/index.ts",
-      "default": "./src/index.ts"
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
     },
     "./translate-ui-react-bridge": {
-      "types": "./src/translate-ui-react-bridge.ts",
-      "default": "./src/translate-ui-react-bridge.ts"
+      "types": "./dist/translate-ui-react-bridge.d.ts",
+      "import": "./dist/translate-ui-react-bridge.js",
+      "default": "./dist/translate-ui-react-bridge.js"
     }
+  },
+  "files": [
+    "dist"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Haywork/complex-ui-tester.git",
+    "directory": "proof-of-concept/packages/recorder"
+  },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com",
+    "access": "restricted"
   },
   "scripts": {
     "build": "tsc -p tsconfig.json",
+    "prepublishOnly": "pnpm run build",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "lint": "tsc -p tsconfig.json --noEmit",
     "test": "vitest run"
   },
   "dependencies": {
-    "@cuit/types": "workspace:*"
+    "@haywork/types": "workspace:*"
   },
   "devDependencies": {
     "@types/jsdom": "^21.1.7",
