@@ -30,7 +30,7 @@ import {
 } from '../src/index.js';
 
 import { normalizeJamSession, type RawJamSession } from '@haywork/adapter-jam';
-import type { GeneratedSpec, SessionEvent } from '@haywork/types';
+import type { GeneratedSpec, SessionEvent } from '@haywork/cuit-types';
 
 // ---------------------------------------------------------------------------
 // Fixture loading helpers
@@ -167,11 +167,11 @@ describe('cuit__generate_spec_from_session', () => {
       value: SEG_COLLISION_EXPECTED_DX,
     });
 
-    // serialized must reference @haywork/harness (not an empty string, not a placeholder)
+    // serialized must reference @haywork/cuit-harness (not an empty string, not a placeholder)
     const serialized = result.data!.serialized;
     expect(typeof serialized).toBe('string');
     expect(serialized.length).toBeGreaterThan(0);
-    expect(serialized).toContain("from '@haywork/harness'");
+    expect(serialized).toContain("from '@haywork/cuit-harness'");
 
     // next_actions must reference the run-spec tool
     expect(result.next_actions.some((a) => a.includes('cuit__run_spec'))).toBe(true);

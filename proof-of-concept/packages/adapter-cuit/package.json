@@ -18,13 +18,13 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@haywork/types": "workspace:*"
+    "@haywork/cuit-types": "workspace:*"
   },
   "devDependencies": {
     "@haywork/adapter-jam": "workspace:*",
-    "@haywork/harness": "workspace:*",
-    "@haywork/runner": "workspace:*",
-    "@haywork/spec-gen": "workspace:*",
+    "@haywork/cuit-harness": "workspace:*",
+    "@haywork/cuit-runner": "workspace:*",
+    "@haywork/cuit-spec-gen": "workspace:*",
     "typescript": "^5.5.4",
     "vitest": "^2.0.5"
   }

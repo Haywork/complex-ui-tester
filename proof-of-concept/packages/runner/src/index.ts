@@ -8,9 +8,9 @@ import {
   dispatchDrag,
   getStateSnapshot,
   setClock,
-} from '@haywork/harness';
-import { generateSpec, serializeSpec } from '@haywork/spec-gen';
-import type { GeneratedSpec, Primitive, SessionEvent } from '@haywork/types';
+} from '@haywork/cuit-harness';
+import { generateSpec, serializeSpec } from '@haywork/cuit-spec-gen';
+import type { GeneratedSpec, Primitive, SessionEvent } from '@haywork/cuit-types';
 
 export type ProofLoopStep =
   | 'load'

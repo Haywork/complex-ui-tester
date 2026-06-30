@@ -123,7 +123,7 @@ async function main(): Promise<void> {
       import('@haywork/demo-app'),
       import('react'),
       import('react-dom/client'),
-      import('@haywork/harness'),
+      import('@haywork/cuit-harness'),
       import('./index.js'),
     ]);
   const reactAct = React as unknown as ReactAct;

@@ -1,5 +1,5 @@
 {
-  "name": "@haywork/types",
+  "name": "@haywork/cuit-types",
   "version": "0.1.0",
   "description": "Shared CUIT session and spec types",
   "type": "module",

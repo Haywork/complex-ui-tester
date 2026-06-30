@@ -73,7 +73,7 @@ export function App({ fixSegmentCollision }: AppProps = {}): ReactElement {
 
   // Attach native pointer listeners directly on segment elements. React's
   // synthetic event delegation is unreliable when events are dispatched from
-  // outside React (e.g. by the @haywork/harness), so we bypass it entirely.
+  // outside React (e.g. by the @haywork/cuit-harness), so we bypass it entirely.
   useEffect(() => {
     const track = trackRef.current;
     if (!track) return undefined;

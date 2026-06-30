@@ -1,5 +1,5 @@
 {
-  "name": "@haywork/mcp-local",
+  "name": "@haywork/cuit-mcp-local",
   "version": "0.1.0",
   "description": "Local MCP tool descriptors for CUIT proof-of-concept",
   "type": "module",
@@ -33,9 +33,9 @@
   },
   "dependencies": {
     "@haywork/adapter-jam": "workspace:*",
-    "@haywork/harness": "workspace:*",
-    "@haywork/spec-gen": "workspace:*",
-    "@haywork/types": "workspace:*"
+    "@haywork/cuit-harness": "workspace:*",
+    "@haywork/cuit-spec-gen": "workspace:*",
+    "@haywork/cuit-types": "workspace:*"
   },
   "devDependencies": {
     "typescript": "^5.5.4",

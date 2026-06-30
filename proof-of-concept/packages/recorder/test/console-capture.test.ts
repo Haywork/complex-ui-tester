@@ -13,7 +13,7 @@
 
 import { afterEach, describe, expect, test } from 'vitest';
 import { Recorder } from '../src/index';
-import type { ConsoleEvent, ErrorEvent } from '@haywork/types';
+import type { ConsoleEvent, ErrorEvent } from '@haywork/cuit-types';
 
 // ─── Constants mirrored from the planned implementation ──────────────────────
 

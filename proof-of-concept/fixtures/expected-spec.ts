@@ -3,7 +3,7 @@ import {
   dispatchDrag,
   getStateSnapshot,
   setClock,
-} from '@haywork/harness';
+} from '@haywork/cuit-harness';
 
 describe('drag seg-0 by +100px updates segments[0].x', () => {
   test('drag seg-0 by +100px updates segments[0].x', () => {

@@ -1,11 +1,11 @@
 // content.entry.ts — thin entry-point for the esbuild IIFE bundle.
 // esbuild (format:'iife') wraps this in a self-invoking function,
-// inlines @haywork/recorder and all transitive deps, and writes content.js.
+// inlines @haywork/cuit-recorder and all transitive deps, and writes content.js.
 //
 // DO NOT import CSS, workers, or any module that references browser-only
 // globals unavailable in the MAIN-world script context.
 
-import { Recorder, cuitDebugProvider } from '@haywork/recorder';
+import { Recorder, cuitDebugProvider } from '@haywork/cuit-recorder';
 
 // ─── Popup-driven API ──────────────────────────────────────────────────────────
 // popup.js drives recording via chrome.scripting.executeScript({ world:'MAIN' })

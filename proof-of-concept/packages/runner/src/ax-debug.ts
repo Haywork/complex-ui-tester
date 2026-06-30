@@ -1,5 +1,5 @@
 /**
- * ax-debug.ts — Pure-TS debugging primitives for @haywork/runner.
+ * ax-debug.ts — Pure-TS debugging primitives for @haywork/cuit-runner.
  *
  * Four functions operating over the immutable SessionEvent[] trace:
  *   - minimalDiff   — single minimal divergence from a red result
@@ -16,7 +16,7 @@ import type {
   StateSnapshotEvent,
   NavEvent,
   Primitive,
-} from '@haywork/types';
+} from '@haywork/cuit-types';
 
 // ---------------------------------------------------------------------------
 // Type helpers
@@ -311,7 +311,7 @@ export interface PrimitiveEntry {
  * Returns the honest executable contract for every Primitive kind.
  *
  * Derived directly from runPrimitive in runner/src/index.ts:
- *   - setClock, dispatchDrag: call into @haywork/harness (executable)
+ *   - setClock, dispatchDrag: call into @haywork/cuit-harness (executable)
  *   - goto, getStateSnapshot, assertStateEquals: early-return no-ops in runPrimitive
  *   - assertNoConsoleErrors: not handled in runPrimitive at all;
  *     only realized in the serialized spec via harness.assertNoConsoleErrors
@@ -329,12 +329,12 @@ export function listPrimitives(): PrimitiveEntry[] {
     {
       kind: 'setClock',
       mode: 'executable',
-      realizedBy: '@haywork/harness setClock via runPrimitive',
+      realizedBy: '@haywork/cuit-harness setClock via runPrimitive',
     },
     {
       kind: 'dispatchDrag',
       mode: 'executable',
-      realizedBy: '@haywork/harness dispatchDrag via runPrimitive',
+      realizedBy: '@haywork/cuit-harness dispatchDrag via runPrimitive',
     },
     {
       kind: 'goto',
@@ -359,7 +359,7 @@ export function listPrimitives(): PrimitiveEntry[] {
   ];
 
   // Compile-time exhaustiveness: iterate every kind through a switch.
-  // If a new Primitive kind is added to @haywork/types but not above,
+  // If a new Primitive kind is added to @haywork/cuit-types but not above,
   // TypeScript will error here at the `assertNever` call.
   for (const entry of entries) {
     const k = entry.kind;

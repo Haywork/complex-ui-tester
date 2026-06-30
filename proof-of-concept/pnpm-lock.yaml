@@ -23,20 +23,20 @@ importers:
 
   packages/adapter-cuit:
     dependencies:
-      '@haywork/types':
+      '@haywork/cuit-types':
         specifier: workspace:*
         version: link:../types
     devDependencies:
       '@haywork/adapter-jam':
         specifier: workspace:*
         version: link:../adapter-jam
-      '@haywork/harness':
+      '@haywork/cuit-harness':
         specifier: workspace:*
         version: link:../harness
-      '@haywork/runner':
+      '@haywork/cuit-runner':
         specifier: workspace:*
         version: link:../runner
-      '@haywork/spec-gen':
+      '@haywork/cuit-spec-gen':
         specifier: workspace:*
         version: link:../spec-gen
       typescript:
@@ -48,7 +48,7 @@ importers:
 
   packages/adapter-jam:
     dependencies:
-      '@haywork/types':
+      '@haywork/cuit-types':
         specifier: workspace:*
         version: link:../types
     devDependencies:
@@ -61,7 +61,7 @@ importers:
 
   packages/dashboard:
     dependencies:
-      '@haywork/types':
+      '@haywork/cuit-types':
         specifier: workspace:*
         version: link:../types
       react:
@@ -98,10 +98,10 @@ importers:
 
   packages/demo-app:
     dependencies:
-      '@haywork/harness':
+      '@haywork/cuit-harness':
         specifier: workspace:*
         version: link:../harness
-      '@haywork/types':
+      '@haywork/cuit-types':
         specifier: workspace:*
         version: link:../types
       react:
@@ -138,7 +138,7 @@ importers:
 
   packages/harness:
     dependencies:
-      '@haywork/types':
+      '@haywork/cuit-types':
         specifier: workspace:*
         version: link:../types
     devDependencies:
@@ -160,13 +160,13 @@ importers:
       '@haywork/adapter-jam':
         specifier: workspace:*
         version: link:../adapter-jam
-      '@haywork/harness':
+      '@haywork/cuit-harness':
         specifier: workspace:*
         version: link:../harness
-      '@haywork/spec-gen':
+      '@haywork/cuit-spec-gen':
         specifier: workspace:*
         version: link:../spec-gen
-      '@haywork/types':
+      '@haywork/cuit-types':
         specifier: workspace:*
         version: link:../types
     devDependencies:
@@ -179,7 +179,7 @@ importers:
 
   packages/recorder:
     dependencies:
-      '@haywork/types':
+      '@haywork/cuit-types':
         specifier: workspace:*
         version: link:../types
     devDependencies:
@@ -198,10 +198,10 @@ importers:
 
   packages/recorder-extension:
     devDependencies:
-      '@haywork/recorder':
+      '@haywork/cuit-recorder':
         specifier: workspace:*
         version: link:../recorder
-      '@haywork/types':
+      '@haywork/cuit-types':
         specifier: workspace:*
         version: link:../types
       '@types/node':
@@ -225,21 +225,21 @@ importers:
       '@haywork/adapter-jam':
         specifier: workspace:*
         version: link:../adapter-jam
+      '@haywork/cuit-harness':
+        specifier: workspace:*
+        version: link:../harness
+      '@haywork/cuit-recorder':
+        specifier: workspace:*
+        version: link:../recorder
+      '@haywork/cuit-spec-gen':
+        specifier: workspace:*
+        version: link:../spec-gen
+      '@haywork/cuit-types':
+        specifier: workspace:*
+        version: link:../types
       '@haywork/demo-app':
         specifier: workspace:*
         version: link:../demo-app
-      '@haywork/harness':
-        specifier: workspace:*
-        version: link:../harness
-      '@haywork/recorder':
-        specifier: workspace:*
-        version: link:../recorder
-      '@haywork/spec-gen':
-        specifier: workspace:*
-        version: link:../spec-gen
-      '@haywork/types':
-        specifier: workspace:*
-        version: link:../types
       jsdom:
         specifier: ^25.0.0
         version: 25.0.1
@@ -271,7 +271,7 @@ importers:
 
   packages/spec-gen:
     dependencies:
-      '@haywork/types':
+      '@haywork/cuit-types':
         specifier: workspace:*
         version: link:../types
     devDependencies:

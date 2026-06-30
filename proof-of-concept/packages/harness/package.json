@@ -1,5 +1,5 @@
 {
-  "name": "@haywork/harness",
+  "name": "@haywork/cuit-harness",
   "version": "0.1.0",
   "description": "Deterministic browser harness for CUIT proof loops",
   "type": "module",
@@ -32,7 +32,7 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@haywork/types": "workspace:*"
+    "@haywork/cuit-types": "workspace:*"
   },
   "devDependencies": {
     "@types/jsdom": "^21.1.7",

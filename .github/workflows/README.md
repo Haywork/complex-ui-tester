@@ -7,10 +7,10 @@ Các workflow gốc từ upstream đã được chuyển sang [../workflows-upst
 ## Active workflows
 
 - `docs-lint.yml` — kiểm tra link và pattern trong markdown docs
-- `poc-publish-packages.yml` — publish npm packages lên GitHub Packages (push khi `package.json` đổi, hoặc manual)
+- `poc-publish-packages.yml` — publish tất cả `@haywork/cuit-*` packages trong 1 job (push khi `package.json` đổi, hoặc manual)
 
 ### Publishable packages
 
-`@haywork/types`, `@haywork/harness`, `@haywork/adapter-jam`, `@haywork/recorder`, `@haywork/spec-gen`, `@haywork/mcp-local`
+`@haywork/cuit-types`, `@haywork/cuit-harness`, `@haywork/cuit-recorder`, `@haywork/cuit-spec-gen`, `@haywork/cuit-mcp-local`
 
 Các workflow gốc từ upstream vẫn nằm ở [../workflows-upstream/](../workflows-upstream/).

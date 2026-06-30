@@ -1,5 +1,5 @@
 import { normalizeJamSession, type RawJamSession } from '@haywork/adapter-jam';
-import type { SessionEvent } from '@haywork/types';
+import type { SessionEvent } from '@haywork/cuit-types';
 import { ok, wrap, type AxEnvelope } from '../envelope.js';
 import { generateSpecTool } from './generate-spec.js';
 import { runSpecTool, type SnapshotProvider, type StateMismatch } from './run-spec.js';
@@ -107,7 +107,7 @@ export async function closeLoopTool(
     const next_actions: string[] = passed
       ? [
           'Commit the GREEN spec as a regression gate.',
-          'Add to CI with: pnpm -F @haywork/mcp-local test',
+          'Add to CI with: pnpm -F @haywork/cuit-mcp-local test',
         ]
       : [
           'Inspect data.mismatches for field-level detail.',

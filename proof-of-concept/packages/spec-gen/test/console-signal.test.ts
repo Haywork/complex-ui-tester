@@ -4,7 +4,7 @@ import type {
   ErrorEvent,
   GeneratedSpec,
   SessionEvent,
-} from '@haywork/types';
+} from '@haywork/cuit-types';
 import { generateSpec, serializeSpec } from '../src/index.js';
 import {
   SEGMENT_COLLISION_EVENTS,
@@ -233,7 +233,7 @@ describe('serializeSpec — console-error guard wiring', () => {
     expect(serialized).not.toContain('captureConsoleErrors');
   });
 
-  test('guarded serialization imports restoreConsoleErrors from @haywork/harness', () => {
+  test('guarded serialization imports restoreConsoleErrors from @haywork/cuit-harness', () => {
     // The generated spec must restore console.error after the test completes so
     // the spy does not bleed into subsequent tests.
     const events = withEvent(consoleError(100, MID_DRAG_OFFSET, 'boom'));

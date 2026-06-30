@@ -7,11 +7,6 @@ on:
       - "proof-of-concept/packages/**/package.json"
       - ".github/workflows/poc-publish-packages.yml"
   workflow_dispatch:
-    inputs:
-      package:
-        description: "Package directory name (empty = publish all)"
-        required: false
-        type: string
 
 concurrency:
   group: poc-publish-packages-${{ github.ref }}
@@ -22,31 +17,9 @@ permissions:
   packages: write
 
 jobs:
-  prepare:
-    name: prepare matrix
-    runs-on: ubuntu-latest
-    outputs:
-      packages: ${{ steps.matrix.outputs.packages }}
-    steps:
-      - id: matrix
-        env:
-          INPUT_PACKAGE: ${{ github.event.inputs.package }}
-        run: |
-          if [[ -n "${INPUT_PACKAGE}" ]]; then
-            packages="[\"${INPUT_PACKAGE}\"]"
-          else
-            packages='["types","harness","adapter-jam","recorder","spec-gen","mcp-local"]'
-          fi
-          echo "packages=${packages}" >> "${GITHUB_OUTPUT}"
-
   publish:
-    name: publish @haywork/${{ matrix.package }}
-    needs: prepare
+    name: publish all @haywork/cuit-* packages
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        package: ${{ fromJSON(needs.prepare.outputs.packages) }}
     steps:
       - uses: actions/checkout@v6
 
@@ -60,11 +33,25 @@ jobs:
           registry-url: https://npm.pkg.github.com
           scope: "@haywork"
 
-      - name: Build and publish
+      - name: Build and publish all packages
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          set -euo pipefail
           cd proof-of-concept
+
+          PACKAGES=(
+            cuit-types
+            cuit-harness
+            cuit-recorder
+            cuit-spec-gen
+            cuit-mcp-local
+          )
+
           pnpm install --frozen-lockfile
-          pnpm --filter "@haywork/${{ matrix.package }}..." run build
-          pnpm --filter "@haywork/${{ matrix.package }}" publish --no-git-checks --access restricted
+          pnpm --filter "@haywork/cuit-mcp-local..." run build
+
+          for pkg in "${PACKAGES[@]}"; do
+            echo "Publishing @haywork/${pkg}..."
+            pnpm --filter "@haywork/${pkg}" publish --no-git-checks --access restricted
+          done

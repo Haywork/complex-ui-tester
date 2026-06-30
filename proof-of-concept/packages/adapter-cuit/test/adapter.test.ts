@@ -20,7 +20,7 @@ import type {
   StateSnapshotEvent,
   ConsoleEvent,
   ErrorEvent,
-} from '@haywork/types';
+} from '@haywork/cuit-types';
 // Resolves to the stub src/index.ts which exports nothing — normalizeCuitSession
 // will be undefined, causing every test in the first describe block to fail.
 import { normalizeCuitSession, type RawCuitSession } from '../src/index.js';
@@ -533,7 +533,7 @@ const ROUTING_GENERATED_SPEC = {
 };
 
 const ROUTING_SERIALIZED_SPEC = `import { describe, expect, test } from 'vitest';
-import { dispatchDrag, getStateSnapshot, setClock } from '@haywork/harness';
+import { dispatchDrag, getStateSnapshot, setClock } from '@haywork/cuit-harness';
 
 describe('routing-test — vendor dispatch smoke', () => {
   test('drags segment 0 right by 100px and asserts state moves', () => {
@@ -603,12 +603,12 @@ vi.mock('@haywork/adapter-cuit', async (importOriginal) => {
   };
 });
 
-vi.mock('@haywork/spec-gen', () => ({
+vi.mock('@haywork/cuit-spec-gen', () => ({
   generateSpec: specGenMocks.generateSpec,
   serializeSpec: specGenMocks.serializeSpec,
 }));
 
-vi.mock('@haywork/harness', () => ({
+vi.mock('@haywork/cuit-harness', () => ({
   setClock: harnessMocks.setClock,
   dispatchDrag: harnessMocks.dispatchDrag,
   getStateSnapshot: harnessMocks.getStateSnapshot,

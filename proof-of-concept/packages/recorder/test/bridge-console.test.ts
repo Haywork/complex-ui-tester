@@ -13,7 +13,7 @@
  */
 
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
-import type { ConsoleEvent, SessionEvent } from '@haywork/types';
+import type { ConsoleEvent, SessionEvent } from '@haywork/cuit-types';
 import { mountTranslateUiReactBridge } from '../src/translate-ui-react-bridge';
 
 // ─── Shared helpers ───────────────────────────────────────────────────────────

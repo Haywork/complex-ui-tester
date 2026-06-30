@@ -2,7 +2,7 @@
   "name": "@haywork/recorder-extension",
   "version": "0.1.0",
   "private": true,
-  "description": "Chrome MV3 extension wrapper around @haywork/recorder.",
+  "description": "Chrome MV3 extension wrapper around @haywork/cuit-recorder.",
   "type": "module",
   "scripts": {
     "validate": "node scripts/validate.mjs",
@@ -20,8 +20,8 @@
     "icons/"
   ],
   "devDependencies": {
-    "@haywork/recorder": "workspace:*",
-    "@haywork/types": "workspace:*",
+    "@haywork/cuit-recorder": "workspace:*",
+    "@haywork/cuit-types": "workspace:*",
     "@types/node": "^20.14.0",
     "esbuild": "^0.21.5",
     "typescript": "^5.5.4",

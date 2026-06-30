@@ -2,7 +2,7 @@ import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, resolve } from 'node:path';
 import { describe, expect, test } from 'vitest';
-import type { GeneratedSpec, SessionEvent } from '@haywork/types';
+import type { GeneratedSpec, SessionEvent } from '@haywork/cuit-types';
 import { generateSpec, serializeSpec } from '../src/index.js';
 import {
   SEGMENT_COLLISION_EVENTS,
@@ -116,7 +116,7 @@ describe('serializeSpec', () => {
     const spec = generateSpec(SEGMENT_COLLISION_EVENTS);
     const serialized = serializeSpec(spec);
 
-    expect(serialized).toContain("from '@haywork/harness'");
+    expect(serialized).toContain("from '@haywork/cuit-harness'");
     expect(serialized).toContain('dispatchDrag');
     expect(serialized).toContain('getStateSnapshot');
     expect(serialized).toContain('setClock');

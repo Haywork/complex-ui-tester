@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { generateSpec } from '../src/index.js';
-import type { SessionEvent } from '@haywork/types';
+import type { SessionEvent } from '@haywork/cuit-types';
 
 /**
  * Regression for the spec-gen bug the support-triage self-test caught:

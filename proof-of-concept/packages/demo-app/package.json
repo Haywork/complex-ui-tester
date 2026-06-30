@@ -20,8 +20,8 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@haywork/harness": "workspace:*",
-    "@haywork/types": "workspace:*",
+    "@haywork/cuit-harness": "workspace:*",
+    "@haywork/cuit-types": "workspace:*",
     "react": "^18.3.1",
     "react-dom": "^18.3.1"
   },

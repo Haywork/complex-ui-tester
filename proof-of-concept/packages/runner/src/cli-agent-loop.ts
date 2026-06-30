@@ -115,9 +115,9 @@ async function main(): Promise<void> {
     import('@haywork/demo-app'),
     import('react'),
     import('react-dom/client'),
-    import('@haywork/harness'),
-    import('@haywork/recorder'),
-    import('@haywork/spec-gen'),
+    import('@haywork/cuit-harness'),
+    import('@haywork/cuit-recorder'),
+    import('@haywork/cuit-spec-gen'),
   ]);
   const reactAct = React as unknown as ReactAct;
   const { dispatchDrag, registerStateSnapshot, getStateSnapshot, setClock } = harness;

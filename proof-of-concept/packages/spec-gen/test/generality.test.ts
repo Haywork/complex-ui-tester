@@ -1,5 +1,5 @@
 /**
- * Generality proof for @haywork/spec-gen.
+ * Generality proof for @haywork/cuit-spec-gen.
  *
  * These tests are written BEFORE the implementation is updated. They drive the
  * TDD cycle for killing the three module-level hardcoded literals (TEST_NAME,
@@ -8,13 +8,13 @@
  *
  * All tests in this file MUST FAIL against the current implementation.
  * Make them green by:
- *   1. Adding KeyboardEvent to @haywork/types and dispatchClick/dispatchType Primitive kinds.
+ *   1. Adding KeyboardEvent to @haywork/cuit-types and dispatchClick/dispatchType Primitive kinds.
  *   2. Replacing the three constants with derivation logic in generateSpec/serializeSpec.
  *   3. Implementing classifyInteraction + diffSnapshots helpers.
  */
 
 import { describe, expect, test } from 'vitest';
-import type { SessionEvent, StateSnapshotEvent } from '@haywork/types';
+import type { SessionEvent, StateSnapshotEvent } from '@haywork/cuit-types';
 import { generateSpec, serializeSpec } from '../src/index.js';
 import {
   SEGMENT_COLLISION_EVENTS,
@@ -85,7 +85,7 @@ const nav = (seq: number, url: string): SessionEvent => ({
 /**
  * Build a keyboard/text-entry event.
  *
- * NOTE: KeyboardEvent is not yet part of @haywork/types. Adding it is part of the
+ * NOTE: KeyboardEvent is not yet part of @haywork/cuit-types. Adding it is part of the
  * implementation step. Until then, we cast to SessionEvent via `unknown` so
  * the test file itself compiles inside vitest's transform pipeline. The cast
  * intentionally documents the new variant the implementation must add.

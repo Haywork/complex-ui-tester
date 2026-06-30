@@ -6,19 +6,19 @@
  *
  *   1. manifest.json is a valid, minimal-permission MV3 manifest that Chrome will
  *      accept via "Load unpacked" with NO wildcard host overreach.
- *   2. The generated content.js bundle (built from @haywork/recorder via build.mjs)
+ *   2. The generated content.js bundle (built from @haywork/cuit-recorder via build.mjs)
  *      carries the full recorder surface — pointer + nav + state + console capture
  *      + window error capture — proving popup.js drives a real recorder.
  *   3. A driven recorder session exports a SCHEMA-VALID session object of the shape
  *      { sessionId, vendor:'cuit', url, events: SessionEvent[] }, where every event
- *      satisfies the @haywork/types SessionEvent union. This is the artifact the popup
- *      copies/downloads and that @haywork/spec-gen consumes.
+ *      satisfies the @haywork/cuit-types SessionEvent union. This is the artifact the popup
+ *      copies/downloads and that @haywork/cuit-spec-gen consumes.
  *
  * Design notes:
- *  - Concern 3 drives the REAL Recorder from @haywork/recorder in Node using an
+ *  - Concern 3 drives the REAL Recorder from @haywork/cuit-recorder in Node using an
  *    injected fake document/window (no jsdom dependency). The export is validated
  *    against an independently-written runtime validator derived from the
- *    @haywork/types union — never against the recorder's own output as its own oracle.
+ *    @haywork/cuit-types union — never against the recorder's own output as its own oracle.
  *  - Permission lists and event categories are parameterised; adding/removing one
  *    in the manifest or the type union changes the expectation deterministically.
  *  - The bundle is asserted by text (it is a browser-MAIN-world IIFE, not Node-loadable).
@@ -29,7 +29,7 @@
  *    5. popup.js wiring: download filename, poll-guard, inject-world, error surface.
  *    6. Session event ordering: seq strictly monotonic, ts non-decreasing, wallClock
  *       absolute, first event ts === 0.
- *    7. Keyboard event capture: @haywork/types defines KeyboardEvent but the Recorder
+ *    7. Keyboard event capture: @haywork/cuit-types defines KeyboardEvent but the Recorder
  *       class does not yet install an input/change listener — bundle omits 'keyboard'.
  *    8. Content.js idempotency: re-running the IIFE when __cuitRecorder already exists
  *       must leave the live API reference intact (not re-assign it).
@@ -41,7 +41,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { beforeAll, describe, expect, test } from 'vitest';
 
-import { Recorder } from '@haywork/recorder';
+import { Recorder } from '@haywork/cuit-recorder';
 import {
   CONSOLE_LEVELS,
   isConsoleEvent,
@@ -51,7 +51,7 @@ import {
   type ErrorEvent,
   type NavEvent,
   type SessionEvent,
-} from '@haywork/types';
+} from '@haywork/cuit-types';
 
 // ─── Paths ──────────────────────────────────────────────────────────────────
 
@@ -60,7 +60,7 @@ const PKG_ROOT = path.resolve(HERE, '..');
 const MANIFEST_JSON = path.join(PKG_ROOT, 'manifest.json');
 const BUILD_MJS = path.join(PKG_ROOT, 'build.mjs');
 
-// ─── Domain constants (mirror @haywork/types — the source of truth) ──────────────
+// ─── Domain constants (mirror @haywork/cuit-types — the source of truth) ──────────────
 
 /** The complete SessionEvent.type union, asserted against the bundle + export. */
 const ALL_SESSION_EVENT_TYPES = [
@@ -161,7 +161,7 @@ describe('manifest.json is a valid minimal-permission MV3 manifest', () => {
 
 // ─── Concern 2: built content bundle carries the recorder + console capture ───
 
-describe('built content.js carries the full @haywork/recorder surface', () => {
+describe('built content.js carries the full @haywork/cuit-recorder surface', () => {
   let bundleText = '';
 
   beforeAll(async () => {
@@ -260,7 +260,7 @@ function makeFakeDom(href: string) {
 
 /**
  * Independent runtime validator for a single SessionEvent. Written from the
- * @haywork/types union — deliberately NOT importing the recorder's own typing —
+ * @haywork/cuit-types union — deliberately NOT importing the recorder's own typing —
  * so it is a genuine external oracle. Returns null when valid, else a reason.
  */
 function validateEvent(e: SessionEvent): string | null {
@@ -335,7 +335,7 @@ describe('a driven recorder exports a schema-valid SessionEvent[] session', () =
     expect(Array.isArray(session.events)).toBe(true);
   });
 
-  test('every event passes the independent @haywork/types schema validator', () => {
+  test('every event passes the independent @haywork/cuit-types schema validator', () => {
     const session = runSession();
     const failures = session.events
       .map((e) => ({ e, reason: validateEvent(e) }))
@@ -600,8 +600,8 @@ describe('session events satisfy ordering and timing invariants', () => {
 
 // ─── Section 7: keyboard event capture ───────────────────────────────────────
 //
-// @haywork/types defines a `KeyboardEvent` union member (type:'keyboard') and
-// exports `isKeyboardEvent`. The @haywork/recorder Recorder class is expected to
+// @haywork/cuit-types defines a `KeyboardEvent` union member (type:'keyboard') and
+// exports `isKeyboardEvent`. The @haywork/cuit-recorder Recorder class is expected to
 // install an 'input' listener on the document and emit KeyboardEvents. Neither
 // the listener installation nor the event emission is implemented yet, so:
 //

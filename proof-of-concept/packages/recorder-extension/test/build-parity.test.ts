@@ -2,7 +2,7 @@
  * build-parity.test.ts
  *
  * Vitest suite proving that the generated content.js is built from the real
- * @haywork/recorder source (via build.mjs) rather than maintained by hand.
+ * @haywork/cuit-recorder source (via build.mjs) rather than maintained by hand.
  *
  * ALL TESTS ARE EXPECTED TO FAIL until the following deliverables exist:
  *   1. packages/recorder-extension/src/content.entry.ts
@@ -39,10 +39,10 @@ const BUILD_MJS = path.join(PKG_ROOT, 'build.mjs');
 const CONTENT_JS = path.join(PKG_ROOT, 'content.js');
 const VALIDATE_MJS = path.join(PKG_ROOT, 'scripts', 'validate.mjs');
 
-// ─── Domain constants (match @haywork/types + recorder/src/index.ts) ─────────────
+// ─── Domain constants (match @haywork/cuit-types + recorder/src/index.ts) ─────────────
 
 /**
- * All console levels the TS Recorder wraps (from @haywork/types CONSOLE_LEVELS).
+ * All console levels the TS Recorder wraps (from @haywork/cuit-types CONSOLE_LEVELS).
  * Parameterising these means adding a sixth level in the future will
  * automatically add a test case here too.
  */
@@ -50,7 +50,7 @@ const CONSOLE_LEVELS = ['log', 'info', 'warn', 'error', 'debug'] as const;
 type ConsoleLevel = (typeof CONSOLE_LEVELS)[number];
 
 /**
- * Full SessionEvent type union from @haywork/types.
+ * Full SessionEvent type union from @haywork/cuit-types.
  * The hand-port only covered the first three; the last two are what's missing.
  */
 const ALL_SESSION_EVENT_TYPES = [

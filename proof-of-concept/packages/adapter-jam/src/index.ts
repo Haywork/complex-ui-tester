@@ -3,7 +3,7 @@ import type {
   PointerEvent,
   SessionEvent,
   StateSnapshotEvent,
-} from '@haywork/types';
+} from '@haywork/cuit-types';
 
 export type RawJamSession = {
   sessionId: string;
