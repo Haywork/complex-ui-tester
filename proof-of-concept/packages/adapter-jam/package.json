@@ -1,6 +1,6 @@
 {
   "name": "@haywork/adapter-jam",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Jam session adapter for CUIT",
   "type": "module",
   "main": "./dist/index.js",

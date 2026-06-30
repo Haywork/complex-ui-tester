@@ -49,7 +49,9 @@ jobs:
           )
 
           pnpm install --frozen-lockfile
-          pnpm --filter "@haywork/cuit-mcp-local..." run build
+          # build:publish — only packages we npm publish; avoids pulling runner/
+          # adapter-cuit dev graph (composite refs race → TS6305).
+          pnpm run build:publish
 
           for pkg in "${PACKAGES[@]}"; do
             echo "Publishing @haywork/${pkg}..."
