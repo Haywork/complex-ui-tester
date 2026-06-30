@@ -1,50 +1,123 @@
 import type { SessionEvent } from '@haywork/cuit-types';
-import { normalizeJamSession, type RawJamSession } from '@haywork/adapter-jam';
 import { generateSpec, serializeSpec } from '@haywork/cuit-spec-gen';
 import type { GeneratedSpec } from '@haywork/cuit-types';
 import { ok, err, wrap, type AxEnvelope } from '../envelope.js';
 
+export type RawJamSession = {
+  sessionId: string;
+  vendor: string;
+  createdAt: string;
+  browser?: Record<string, unknown>;
+  viewport?: Record<string, unknown>;
+  url: string;
+  events: unknown[];
+};
+
+export type RawCuitSession = {
+  sessionId: string;
+  vendor: string;
+  createdAt: number;
+  url: string;
+  events: unknown[];
+};
+
+export type CuitSession = {
+  vendor: 'cuit';
+  events: SessionEvent[];
+  url?: string;
+  sessionId?: string;
+};
+
 export type GenerateSpecInput =
   | { vendor: 'jam'; session: RawJamSession }
   | { vendor: 'cuit'; events: SessionEvent[] }
-  | { session: RawJamSession | { vendor: string; events: SessionEvent[]; url?: string } };
+  | { session: RawJamSession | RawCuitSession | CuitSession };
 
 export type GenerateSpecData = {
   spec: GeneratedSpec;
   serialized: string;
 };
 
+const JAM_ADAPTER = '@haywork/adapter-jam';
+const CUIT_ADAPTER = '@haywork/adapter-cuit';
+
+async function loadJamAdapter(): Promise<{
+  normalizeJamSession: (raw: RawJamSession) => SessionEvent[];
+}> {
+  try {
+    return await import(JAM_ADAPTER);
+  } catch {
+    throw new Error(
+      `Jam sessions require optional package ${JAM_ADAPTER}. Install it or pass a CUIT recorder session instead.`,
+    );
+  }
+}
+
+async function loadCuitAdapter(): Promise<{
+  normalizeCuitSession: (raw: RawCuitSession) => SessionEvent[];
+}> {
+  try {
+    return await import(CUIT_ADAPTER);
+  } catch {
+    throw new Error(
+      `Raw CUIT session files require optional package ${CUIT_ADAPTER}. Pass typed SessionEvent[] from @haywork/cuit-recorder instead.`,
+    );
+  }
+}
+
+function isTypedSessionEvents(events: unknown[]): events is SessionEvent[] {
+  return (
+    events.length > 0 &&
+    typeof events[0] === 'object' &&
+    events[0] !== null &&
+    'type' in events[0]
+  );
+}
+
+/**
+ * Normalize an incoming session to SessionEvent[].
+ * Vendor adapters are loaded on demand so install stays minimal for OSS recorder flows.
+ */
+export async function resolveSessionEvents(
+  input: GenerateSpecInput | { session: RawJamSession | RawCuitSession | CuitSession },
+): Promise<SessionEvent[]> {
+  if ('vendor' in input && input.vendor === 'jam') {
+    const { normalizeJamSession } = await loadJamAdapter();
+    return normalizeJamSession(input.session);
+  }
+
+  if ('session' in input) {
+    const session = input.session;
+    if (session.vendor === 'jam') {
+      const { normalizeJamSession } = await loadJamAdapter();
+      return normalizeJamSession(session as RawJamSession);
+    }
+    if (session.vendor === 'cuit' && isTypedSessionEvents(session.events)) {
+      return session.events;
+    }
+    const { normalizeCuitSession } = await loadCuitAdapter();
+    return normalizeCuitSession(session as RawCuitSession);
+  }
+
+  if ('vendor' in input && input.vendor === 'cuit') {
+    return input.events;
+  }
+
+  return (input as { events: SessionEvent[] }).events;
+}
+
 /**
  * Normalize an incoming session and generate a Vitest spec via @haywork/cuit-spec-gen.
  *
- * - vendor==='jam' raw sessions are normalized via @haywork/adapter-jam.
- * - All other vendor values are assumed to already carry typed SessionEvent[].
- * - An empty events array returns outcome:'error' instead of throwing.
+ * - vendor==='jam' → optional @haywork/adapter-jam
+ * - vendor==='cuit' with SessionEvent[] → pass-through (OSS recorder path)
+ * - raw CUIT session JSON → optional @haywork/adapter-cuit
  */
 export async function generateSpecTool(
   input: GenerateSpecInput,
 ): Promise<AxEnvelope<GenerateSpecData>> {
-  return wrap(() => {
-    let events: SessionEvent[];
-
-    // Determine the session object and whether normalization is needed.
-    if ('vendor' in input && input.vendor === 'jam') {
-      // Explicit jam branch
-      events = normalizeJamSession(input.session);
-    } else if ('session' in input) {
-      const session = input.session as RawJamSession | { vendor: string; events: unknown[]; url?: string };
-      if (session.vendor === 'jam') {
-        events = normalizeJamSession(session as RawJamSession);
-      } else {
-        // Pre-typed cuit (or other) session — treat events as already SessionEvent[]
-        events = (session.events as SessionEvent[]);
-      }
-    } else if ('vendor' in input && input.vendor === 'cuit') {
-      events = input.events;
-    } else {
-      // Fallback: treat as pre-typed
-      events = (input as unknown as { events: SessionEvent[] }).events;
-    }
+  return wrap(async () => {
+    const events = await resolveSessionEvents(input);
 
     if (events.length === 0) {
       return err(

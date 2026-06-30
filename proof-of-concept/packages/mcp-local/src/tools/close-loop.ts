@@ -1,7 +1,11 @@
-import { normalizeJamSession, type RawJamSession } from '@haywork/adapter-jam';
-import type { SessionEvent } from '@haywork/cuit-types';
 import { ok, wrap, type AxEnvelope } from '../envelope.js';
-import { generateSpecTool } from './generate-spec.js';
+import {
+  generateSpecTool,
+  resolveSessionEvents,
+  type CuitSession,
+  type RawCuitSession,
+  type RawJamSession,
+} from './generate-spec.js';
 import { runSpecTool, type SnapshotProvider, type StateMismatch } from './run-spec.js';
 
 export type CloseLoopStep = 'normalize' | 'generate' | 'run' | 'report';
@@ -15,7 +19,7 @@ export type CloseLoopData = {
 };
 
 export type CloseLoopInput = {
-  session: RawJamSession | { vendor: 'cuit'; events: SessionEvent[] };
+  session: RawJamSession | RawCuitSession | CuitSession;
   snapshotProvider?: SnapshotProvider;
 };
 
@@ -34,25 +38,14 @@ export async function closeLoopTool(
   return wrap(async () => {
     const steps: CloseLoopStep[] = [];
 
-    // Step 1: Normalize
     steps.push('normalize');
     const { session, snapshotProvider } = input;
+    const normalized = await resolveSessionEvents({ session });
 
-    let normalizedEventCount: number;
-    if ((session as RawJamSession).vendor === 'jam') {
-      const normalized = normalizeJamSession(session as RawJamSession);
-      normalizedEventCount = normalized.length;
-    } else {
-      // cuit or other — events are already typed
-      normalizedEventCount = (session as { events: SessionEvent[] }).events.length;
-    }
-
-    // Step 2: Generate spec via the generateSpecTool handler
     steps.push('generate');
-    const genResult = await generateSpecTool({ session: session as RawJamSession });
+    const genResult = await generateSpecTool({ session });
 
     if (genResult.outcome === 'error') {
-      // spec-gen failed — return an error envelope that surfaces the cause
       return {
         outcome: 'error' as const,
         summary: `close_loop failed at generate step: ${genResult.summary}`,
@@ -66,13 +59,8 @@ export async function closeLoopTool(
 
     const spec = genResult.data!.spec;
 
-    // Step 3: Run spec against the injected provider (or replay oracle)
     steps.push('run');
 
-    // If no provider is injected, build a replay oracle from the spec's
-    // expectedFinalState so the loop can pass vacuously in the absence of
-    // a live snapshot source. The provider seeded to expectedFinalState is the
-    // default GREEN oracle for the OSS close-loop path.
     let resolvedProvider: SnapshotProvider;
     if (snapshotProvider !== undefined) {
       resolvedProvider = snapshotProvider;
@@ -95,7 +83,6 @@ export async function closeLoopTool(
       };
     }
 
-    // Step 4: Report
     steps.push('report');
 
     const { passed, mismatches } = runResult.data!;
@@ -121,7 +108,7 @@ export async function closeLoopTool(
         steps,
         specGenerated: true,
         passed,
-        normalizedEventCount,
+        normalizedEventCount: normalized.length,
         mismatches,
       },
       next_actions,

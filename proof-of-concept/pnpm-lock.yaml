@@ -157,9 +157,6 @@ importers:
 
   packages/mcp-local:
     dependencies:
-      '@haywork/adapter-jam':
-        specifier: workspace:*
-        version: link:../adapter-jam
       '@haywork/cuit-harness':
         specifier: workspace:*
         version: link:../harness
@@ -170,6 +167,12 @@ importers:
         specifier: workspace:*
         version: link:../types
     devDependencies:
+      '@haywork/adapter-cuit':
+        specifier: workspace:*
+        version: link:../adapter-cuit
+      '@haywork/adapter-jam':
+        specifier: workspace:*
+        version: link:../adapter-jam
       typescript:
         specifier: ^5.5.4
         version: 5.9.3
