@@ -1,6 +1,6 @@
 {
   "name": "@haywork/cuit-mcp-local",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "description": "Local MCP tool descriptors for CUIT proof-of-concept",
   "type": "module",
   "main": "./dist/index.js",
@@ -41,17 +41,5 @@
     "@haywork/adapter-jam": "workspace:*",
     "typescript": "^5.5.4",
     "vitest": "^2.0.5"
-  },
-  "peerDependencies": {
-    "@haywork/adapter-cuit": "*",
-    "@haywork/adapter-jam": "*"
-  },
-  "peerDependenciesMeta": {
-    "@haywork/adapter-cuit": {
-      "optional": true
-    },
-    "@haywork/adapter-jam": {
-      "optional": true
-    }
   }
 }

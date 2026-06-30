@@ -1,6 +1,6 @@
 {
   "name": "@haywork/cuit-types",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "description": "Shared CUIT session and spec types",
   "type": "module",
   "main": "./dist/index.js",
