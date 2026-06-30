@@ -33,9 +33,6 @@ importers:
       '@haywork/cuit-harness':
         specifier: workspace:*
         version: link:../harness
-      '@haywork/cuit-runner':
-        specifier: workspace:*
-        version: link:../runner
       '@haywork/cuit-spec-gen':
         specifier: workspace:*
         version: link:../spec-gen

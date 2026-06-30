@@ -1,11 +1,11 @@
 {
   "name": "@haywork/proof-of-concept",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "private": true,
   "type": "module",
   "scripts": {
     "build": "pnpm -r --filter=./packages/* run build",
-    "build:publish": "pnpm -r --filter './packages/{types,harness,recorder,spec-gen,mcp-local}' run build",
+    "build:publish": "pnpm -r --filter './packages/{types,harness,recorder,spec-gen,adapter-jam,mcp-local}' run build",
     "test": "pnpm -r run test",
     "typecheck": "tsc -b",
     "lint": "pnpm -r --filter=./packages/* run lint",

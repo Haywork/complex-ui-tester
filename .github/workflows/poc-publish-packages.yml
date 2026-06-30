@@ -45,6 +45,7 @@ jobs:
             cuit-harness
             cuit-recorder
             cuit-spec-gen
+            adapter-jam
             cuit-mcp-local
           )
 
