@@ -79,13 +79,41 @@ function createPointerEvent(
   return ev;
 }
 
-export function dispatchDrag(targetName: string, dx: number, dy: number): void {
-  const target = document.querySelector<HTMLElement>(
+function resolveInteractionTarget(targetName: string, verb: string): HTMLElement {
+  const bySegment = document.querySelector<HTMLElement>(
     `[data-segment-id="${targetName}"]`,
   );
-  if (!target) {
-    throw new Error(`dispatchDrag: no element with data-segment-id="${targetName}"`);
-  }
+  if (bySegment) return bySegment;
+
+  const byTestId = document.querySelector<HTMLElement>(
+    `[data-testid="${targetName}"]`,
+  );
+  if (byTestId) return byTestId;
+
+  const byCuitId = document.querySelector<HTMLElement>(
+    `[data-cuit-id="${targetName}"]`,
+  );
+  if (byCuitId) return byCuitId;
+
+  const bySelector = document.querySelector<HTMLElement>(targetName);
+  if (bySelector) return bySelector;
+
+  throw new Error(`${verb}: no element matching target "${targetName}"`);
+}
+
+export function dispatchClick(targetName: string): void {
+  const target = resolveInteractionTarget(targetName, 'dispatchClick');
+  const rect = target.getBoundingClientRect();
+  const x = rect.x + rect.width / 2;
+  const y = rect.y + rect.height / 2;
+
+  target.dispatchEvent(createPointerEvent('pointerdown', x, y));
+  target.dispatchEvent(createPointerEvent('pointerup', x, y));
+  target.click();
+}
+
+export function dispatchDrag(targetName: string, dx: number, dy: number): void {
+  const target = resolveInteractionTarget(targetName, 'dispatchDrag');
 
   const rect = target.getBoundingClientRect();
   const startX = rect.x + rect.width / 2;
