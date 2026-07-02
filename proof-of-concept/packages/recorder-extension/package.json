@@ -1,6 +1,6 @@
 {
   "name": "@haywork/recorder-extension",
-  "version": "0.2.3",
+  "version": "0.2.4",
   "private": true,
   "description": "Chrome MV3 extension wrapper around @haywork/cuit-recorder.",
   "type": "module",

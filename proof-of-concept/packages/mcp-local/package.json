@@ -1,6 +1,6 @@
 {
   "name": "@haywork/cuit-mcp-local",
-  "version": "0.2.3",
+  "version": "0.2.4",
   "description": "Local MCP tool descriptors for CUIT proof-of-concept",
   "type": "module",
   "main": "./dist/index.js",

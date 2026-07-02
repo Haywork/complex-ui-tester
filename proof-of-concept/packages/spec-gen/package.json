@@ -1,6 +1,6 @@
 {
   "name": "@haywork/cuit-spec-gen",
-  "version": "0.2.3",
+  "version": "0.2.4",
   "description": "Generate Vitest specs from CUIT sessions",
   "type": "module",
   "main": "./dist/index.js",

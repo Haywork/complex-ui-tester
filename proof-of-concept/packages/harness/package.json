@@ -1,6 +1,6 @@
 {
   "name": "@haywork/cuit-harness",
-  "version": "0.2.3",
+  "version": "0.2.4",
   "description": "Deterministic browser harness for CUIT proof loops",
   "type": "module",
   "main": "./dist/index.js",
